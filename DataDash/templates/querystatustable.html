@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="/static/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-table-develop/dist/bootstrap-table.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-table-develop/dist/locale/bootstrap-table-zh-CN.js"></script>
+    <script type="text/javascript" src="/static/plugins/Layer/layer.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-datetimepicker/js/locales/bootstrap-datetimepicker.fr.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-datetimepicker/js/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+    <link rel="stylesheet" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/plugins/bootstrap-table-develop/dist/bootstrap-table.css">
+    <link rel="stylesheet" type="text/css" href="/static/plugins/Layer/skin/default/layer.css">
+    <link rel="stylesheet" type="text/css" href="/static/plugins/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="panel-body">
+             <div class="form-group" style="margin-bottom: 40px">
+                <div class="col-md-2">
+                    <label>文件夹名称:</label>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="foldername">
+                </div>
+                <div class="col-md-2">
+                    <label>导入表类型:</label>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-control" id="type" >
+                                    <option value=""></option>
+                                    <option value="orgdata">数据表</option>
+                                    <option value="industry">行业表</option>
+                    </select>
+                </div>
+             </div>
+             <div class="form-group" style="margin-bottom: 40px">
+                <div class="col-md-2">
+                    <label>状态:</label>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-control" id="status" >
+                                    <option value=""></option>
+                                    <option value="0">进行中</option>
+                                    <option value="1">完成</option>
+                                    <option value="2">已删除</option>
+                    </select>
+                </div>
+              <div class="col-md-2">
+                    <label>创建时间:</label>
+                </div>
+                <div class="col-md-4">
+                    <input class="form-control input-inline input-sm form_datetime"  name="createtime"
+                           id="createtime" size="12" type="text" data-date-format="yyyy-mm-dd"/>
+                </div>
+             </div>
+             <div class="form-group" style="margin-top: 80px">
+                <div class="col-md-2">
+                    <label>更新时间:</label>
+                </div>
+                <div class="col-md-4">
+                    <input class="form-control input-inline input-sm form_datetime"  name="updatetime"
+                           id="updatetime" size="12" type="text" data-date-format="yyyy-mm-dd"/>
+                </div>
+                 <div style="float:right">
+                     <button type="button" class="btn btn-primary" style="width: 100px;" onclick="clickexport()" id="exportbutton">导入</button>
+                     <button type="button" class="btn btn-primary" style="width: 100px;" onclick="clickquery()" id="querybutton">查询</button>
+                     <button type="button" class="btn btn-primary" style="width: 100px;" onclick="clickreset()" id="resetbutton">重置</button>
+                 </div>
+            </div>
+        </div>
+        <table id="grid"></table>
+    </div>
+</body>
+<script>
+    var $table;
+     $("#createtime").datetimepicker({
+            format:'yyyy-mm-dd',
+            autoclose: true,   //选择后自动关闭当前时间控件
+            language:'zh-CN',
+            minView:'month',
+        });
+    $("#updatetime").datetimepicker({
+            format: "yyyy-mm-dd", //时间格式
+            autoclose: true,   //选择后自动关闭当前时间控件
+            language:'zh-CN',
+             minView:'month',
+        });
+    $(function (){
+        InitMainTable();
+    });
+    //初始化bootstrap-table的内容
+    function InitMainTable () {
+            //记录页面bootstrap-table全局变量$table，方便应用
+            var queryUrl = '/DataModel/querystatus';
+            $table = $('#grid').bootstrapTable({
+                url: queryUrl,                      //请求后台的URL（*）
+                method: 'GET',                      //请求方式（*）
+                //toolbar: '#toolbar',              //工具按钮用哪个容器
+                striped: true,                      //是否显示行间隔色
+                cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: true,                   //是否显示分页（*）
+                sortable: true,                     //是否启用排序
+                sortOrder: "asc",                   //排序方式
+                sidePagination: "server",           //分页方式：client客户端分页，server服务端分页（*）
+                pageNumber: 1,                      //初始化加载第一页，默认第一页,并记录
+                pageSize: 10,                     //每页的记录行数（*）
+                pageList: [10, 25, 50, 100],        //可供选择的每页的行数（*）
+                search: false,                      //是否显示表格搜索
+                strictSearch: true,
+                showColumns: false,                  //是否显示所有的列（选择显示的列）
+                showRefresh: false,                  //是否显示刷新按钮
+                minimumCountColumns: 2,             //最少允许的列数
+                clickToSelect: false,                //是否启用点击选中行
+                //height: 500,                      //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+                uniqueId: "id",                     //每一行的唯一标识，一般为主键列
+                showToggle: false,                   //是否显示详细视图和列表视图的切换按钮
+                cardView: false,                    //是否显示详细视图
+                detailView: false,                  //是否显示父子表
+                singleSelect: false, //开启单选,想要获取被选中的行数据必须要有该参数
+                //得到查询的参数
+                queryParams : function (params) {
+                    //这里的键的名字和控制器的变量名必须一致，这边改动，控制器也需要改成一样的
+                    var temp = {
+                        rows: params.limit,                         //页面大小
+                        page: (params.offset / params.limit) + 1,   //页码
+                        sort: params.sort,      //排序列名
+                        sortOrder: params.order,   //排位命令（desc，asc）
+                        pageSize:this.pageSize,
+                        dirpath:$("#foldername").val(),
+                        type:$("#type").val(),
+                        status:$("#status").val(),
+                        createtime:$("#createtime").val(),
+                        updatetime:$("#updatetime").val()
+                    };
+                    return temp;
+                },
+                columns: [
+                    {
+                    field: 'id',
+                    title: '唯一标识',
+                    width: 80
+                }, {
+                    field: 'type',
+                    title: '导入表类型',
+                    width:120,
+                    sortable: false,
+                    formatter:tranexporttype
+                },{
+                    field: 'status',
+                    title: '状态',
+                    sortable: false,
+                    formatter:transtatus
+                }, {
+                    field: 'createtime',
+                    title: '创建时间',
+                    sortable: false,
+                    formatter:trancreattime
+                }, {
+                    field: 'updatetime',
+                    title: '更新时间',
+                    sortable: false,
+                    formatter:tranupdatetime
+                }, {
+                    field: 'dirpath',
+                    title: '文件夹（数据表）名称',
+                    formatter: trandirname
+                }, {
+                    title: '操作',
+                    width: 120,
+                    align: 'center',
+                    valign: 'middle',
+                    formatter: actionFormatter
+                }, ],
+                onLoadSuccess: function () {
+                },
+                onLoadError: function () {
+                },
+                onDblClickRow: function (row, $element) {
+                },
+            });
+        }
+
+    function trandirname(value){
+        if(value.indexOf('\\')<0){
+            return value
+        }else{
+          return(value.split('\\')[value.split('\\').length-2])
+        }
+    }
+    function trancreattime(value){
+        return formatDate(value);
+    }
+    function tranupdatetime(value){
+        return formatDate(value);
+    }
+    function tranexporttype(value){
+        if(value=='orgdata'){
+            return '数据表'
+        }
+        if(value=='industry'){
+            return '行业表';
+        }
+        if(value=='cleandata'){
+            return '清洗表'
+        }
+    }
+
+    function transtatus(value){
+        if(value=='0'){
+            return '运行中'
+        }
+        if(value=='1'){
+            return '完成';
+        }
+        if(value=='2'){
+            return '已删除';
+        }
+    }
+
+    //时间戳转换方法    date:时间戳数字
+    function formatDate(date) {
+      var date = new Date(date);
+      var YY = date.getFullYear() + '-';
+      var MM = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+      var DD = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate());
+      var hh = (date.getHours() < 10 ? '0' + date.getHours() : date.getHours()) + ':';
+      var mm = (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()) + ':';
+      var ss = (date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds());
+      return YY + MM + DD +" "+hh + mm + ss;
+    }
+    function EditView(id){
+        var rowData = $("#grid").bootstrapTable('getRowByUniqueId',id);
+        if(rowData.status=='1' || rowData.status=='2'){
+            layer.alert("该状态不支持编辑");
+            return
+        }
+        if(rowData.status=='0'){
+             layer.open({
+                      content: '确定将此条记录修改为完成？',
+                      yes: function(index, layero){
+                          data={"id":rowData.id};
+                          $.post("DataModel/editstatus",data,function(result){
+                              if(result.result.status=='200'){
+                                  layer.close(index);
+                                  layer.alert('修改成功');
+                                  $("#grid").bootstrapTable('refresh');
+                          }else{
+                               layer.close(index);
+                               layer.alert('内部异常');
+                              }
+                          });
+                      }
+             });
+        }
+    }
+
+    function DeleteByIds(id) {
+        var rowData = $("#grid").bootstrapTable('getRowByUniqueId',id);
+        if(rowData.status=='0' || rowData.status=='2'){
+            layer.alert("该状态不支持删除");
+        }
+        if(rowData.status=='1'){
+            layer.open({
+                      content: '确定将此记录删除？请谨慎选择此操作，可能为数据录入带来问题',
+                      yes: function(index, layero){
+                          if(rowData.type=='cleandata'){
+                                  filename=rowData.dirpath;
+                                  data={"id":rowData.id,'filename':filename,'type':rowData.type};
+                                  $.post("DataModel/deletestatus",data,function(result){
+                                      if(result.result.status=='200'){
+                                          layer.close(index);
+                                          layer.alert('删除成功');
+                                          $("#grid").bootstrapTable('refresh');
+                                  }else{
+                                       layer.close(index);
+                                       layer.alert('内部异常'+result.result.msg);
+                                      }
+                                  });
+                          }else{
+                                  filename=rowData.dirpath.split('\\')[rowData.dirpath.split('\\').length-2];
+                                  data={"id":rowData.id,'filename':filename};
+                                  $.post("DataModel/deletestatus",data,function(result){
+                                      if(result.result.status=='200'){
+                                          layer.close(index);
+                                          layer.alert('删除成功');
+                                          $("#grid").bootstrapTable('refresh');
+                                  }else{
+                                       layer.close(index);
+                                       layer.alert('内部异常'+result.result.msg);
+                                      }
+                                  });
+                          }
+                      }
+             });
+        }
+    }
+
+    function Analysis(id) {
+        var rowData = $("#grid").bootstrapTable('getRowByUniqueId',id);
+        if(rowData.status=='0' || rowData.status=='2'){
+                layer.alert("该状态不支持分析");
+                return;
+            }
+        var lay=layer.open({
+                      title:"数据分析确认界面",
+                      type:2,
+                      content: 'insureanalysislay.html',
+                      maxmin: true,
+                      area: ['100%', '100%'],
+                      success: function(layero, index){
+                                var body=layer.getChildFrame('body',index);//少了这个是不能从父页面向子页面传值的
+　　　　　　　　                //获取子页面的元素，进行数据渲染
+　　　　　　　                  body.contents().find("#analysiscleantable").val(rowData.dirpath);
+                               body.contents().find("#analysiscleanid").val(rowData.id);
+                      }
+             });
+        layer.style(lay, {
+                overflow: 'visible',
+            });
+    }
+
+    function actionFormatter(value, row, index) {
+             var id = row.id;
+             var result = "";
+             if(row.type=='orgdata' || row.type=='industry'){
+                 result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"EditView('"+id+"')\" title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
+                 result += "<a href='javascript:;' class='btn btn-xs red' onclick=\"DeleteByIds('"+id+"')\" title='删除'><span class='glyphicon glyphicon-remove'></span></a>"
+             }
+             if(row.type=='cleandata'){
+                 result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"Analysis('"+id+"')\" title='生成分析数据'><span class='glyphicon glyphicon-play'></span></a>";
+                 result += "<a href='javascript:;' class='btn btn-xs red' onclick=\"DeleteByIds('"+id+"')\" title='删除'><span class='glyphicon glyphicon-remove'></span></a>"
+             }
+             return result;
+    }
+    function clickquery(){
+        $("#grid").bootstrapTable("refreshOptions", {
+                pageNumber: 1 ,
+                queryParams : function (params) {
+                    //这里的键的名字和控制器的变量名必须一致，这边改动，控制器也需要改成一样的
+                    var temp = {
+                        rows: params.limit,                         //页面大小
+                        page: (params.offset / params.limit) + 1,   //页码
+                        sort: params.sort,      //排序列名
+                        sortOrder: params.order,   //排位命令（desc，asc）
+                        pageSize:this.pageSize,
+                        dirpath:$("#foldername").val(),
+                        type:$("#type").val(),
+                        status:$("#status").val(),
+                        createtime:$("#createtime").val(),
+                        updatetime:$("#updatetime").val()
+                    };
+                    return temp;
+                }
+            }
+        );
+    }
+
+    function clickreset(){
+             $("#foldername").val('');
+             $("#type").val('');
+             $("#status").val('');
+             $("#createtime").val('');
+             $("#updatetime").val('');
+    }
+
+    function clickexport(){
+                 layer.open({
+                      title:"导入数据确认",
+                      type:2,
+                      content: 'exportlayinput.html',
+                      maxmin: true,
+                      area: ['100%', '100%']
+             });
+    }
+</script>
+</html>

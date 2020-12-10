@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/reset.css">
+    <link rel="stylesheet" type="text/css" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/plugins/Layer/skin/default/layer.css">
+    <script type="text/javascript" src="/static/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/NiceScroll/jquery.nicescroll.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/Layer/layer.js"></script>
+</head>
+<body>
+     <div class="container">
+        <div class="panel-body">
+             <div class="form-group" style="margin-bottom: 40px">
+                <div class="col-md-2">
+                    <label>数据表一:</label>
+                </div>
+                <div class="col-md-4">
+                    <div id="channelNoInputBox1">
+                        <input type="text" class="form-control" id="databasetable1" autocomplete="off">
+                        <input type="hidden" id="currentpage1" value="1">
+                        <ul class="dropdown-menu" role="menu" id="channel-menu1">
+                                <li class="divider"></li>
+                                <li id="paging1">
+                                    <ul class="pagination pagination-sm" style="margin: 0 0;">
+                                        <li><a href="#" id="previous1" data-stopPropagation="true" onclick="prevPage(this.id)">&laquo;</a></li>
+                                        <li><a href="#" id="next1" data-stopPropagation="true" onclick="nextPage(this.id)">&raquo;</a></li>
+                                    </ul>
+                                </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label>数据表二:</label>
+                </div>
+                <div class="col-md-4">
+                    <div id="channelNoInputBox2">
+                        <input type="text" class="form-control" id="databasetable2" autocomplete="off">
+                        <input type="hidden" id="currentpage2" value="1">
+                        <ul class="dropdown-menu" role="menu" id="channel-menu2">
+                                <li class="divider"></li>
+                                <li id="paging2">
+                                    <ul class="pagination pagination-sm" style="margin: 0 0;">
+                                        <li><a href="#" id="previous2" data-stopPropagation="true" onclick="prevPage(this.id)">&laquo;</a></li>
+                                        <li><a href="#" id="next2" data-stopPropagation="true" onclick="nextPage(this.id)">&raquo;</a></li>
+                                    </ul>
+                                </li>
+                        </ul>
+                    </div>
+                </div>
+             </div>
+             <div class="form-group" style="margin-bottom: 40px">
+                <div class="col-md-2">
+                     <label>数据表三:</label>
+                </div>
+                <div class="col-md-4">
+                    <div id="channelNoInputBox3">
+                        <input type="text" class="form-control" id="databasetable3"  autocomplete="off">
+                        <input type="hidden" id="currentpage3" value="1">
+                        <ul class="dropdown-menu" role="menu" id="channel-menu3">
+                                <li class="divider"></li>
+                                <li id="paging3">
+                                    <ul class="pagination pagination-sm" style="margin: 0 0;">
+                                        <li><a href="#" id="previous3" data-stopPropagation="true" onclick="prevPage(this.id)">&laquo;</a></li>
+                                        <li><a href="#" id="next3" data-stopPropagation="true" onclick="nextPage(this.id)">&raquo;</a></li>
+                                    </ul>
+                                </li>
+                        </ul>
+                    </div>
+                </div>
+              <div class="col-md-2">
+                    <label>行业表:</label>
+                </div>
+                <div class="col-md-4">
+                    <div id="channelNoInputBox4">
+                        <input type="text" class="form-control" id="industrytable" autocomplete="off">
+                        <input type="hidden" id="currentpage4" value="1">
+                        <ul class="dropdown-menu" role="menu" id="channel-menu4">
+                                <li class="divider"></li>
+                                <li id="paging4">
+                                    <ul class="pagination pagination-sm" style="margin: 0 0;">
+                                        <li><a href="#" id="previous4" data-stopPropagation="true" onclick="prevPage(this.id)">&laquo;</a></li>
+                                        <li><a href="#" id="next4" data-stopPropagation="true" onclick="nextPage(this.id)">&raquo;</a></li>
+                                    </ul>
+                                </li>
+                        </ul>
+                    </div>
+                </div>
+             </div>
+            <div class="form-group" style="margin-bottom: 40px">
+                <div class="col-md-2">
+                     <label>清洗表表名称:</label>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="cleantablename"  autocomplete="off" onblur="checksametablename()">
+                </div>
+
+            </div>
+            <div class="form-group" style="margin-top: 80px">
+                 <div style="float:right">
+                     <button type="button" class="btn btn-primary" style="width: 100px;" onclick="clickexport()" id="exportbutton">导入</button>
+                 </div>
+            </div>
+        </div>
+    </div>
+     <div class="modal fade" id="exportloadingModal">
+                <div style="width: 200px;height:20px; z-index: 20000; position:
+                absolute; text-align: center; left: 50%; top: 50%;margin-left:-100px;margin-top:-10px">
+                    <div class="progress progress-striped active" style="margin-bottom: 0;">
+                         <div class="progress-bar" style="width: 100%;"></div>
+                    </div>
+                    <h5>数据录入（大概十多分钟）,请耐心等待...........</h5>
+                </div>
+    </div>
+</body>
+<script>
+    var onepagelimit=5;
+    var msthridPlatformLis=[];
+    var pageCount=1;
+    var choosechannelNoInputBox='';
+      $(function () {
+          $.get('DataModel/querydata', function (result) {
+              if(result.result.status=='200'){
+                  $.get('DataModel/queryexportstatus',function(result){
+                      if(result.result.status=='200'){
+                          if(result.result.data.length>0){
+                                resultdata=result.result.data;
+                                var starttimes='';
+                                for(var i=0;i<resultdata.length;i++){
+                                    starttimes+="任务id:"+resultdata[i].id+" 开始时间:"+resultdata[i].createtime+"\n ";
+                                }
+                                layer.alert("存在"+resultdata.length+"个未完成任务请等待,未完成任务信息如下：\n"+starttimes);
+                                $("#databasetable1").attr('disabled',true);
+                                $("#databasetable2").attr('disabled',true);
+                                $("#databasetable3").attr('disabled',true);
+                                $("#industrytable").attr('disabled',true);
+                                $("#cleantablename").attr('disabled',true);
+                                $("#exportbutton").attr('disabled',true);
+                          }else{
+                                $("#databasetable1").attr('disabled',false);
+                                $("#databasetable2").attr('disabled',false);
+                                $("#databasetable3").attr('disabled',false);
+                                $("#industrytable").attr('disabled',false);
+                                $("#cleantablename").attr('disabled',false);
+                                $("#exportbutton").attr('disabled',false);
+                          }
+                      }
+                  });
+              }
+          });
+
+      });
+
+    function checksametablename(){
+        var querycleantablename=$("#cleantablename").val();
+        if(querycleantablename==''){
+            return;
+        }
+        data={'cleantablename':querycleantablename};
+        $.post("/DataModel/checkcleantable",data,function (result) {
+            if(result.status=='200'){
+                return;
+            }
+            if(result.status=='201'){
+                layer.alert("数据库已存在相关表名称，请重新输入,系统表名称包括："+result.data);
+            }
+            if(result.status=='500'){
+                layer.alert(result.msg);
+            }
+        });
+    }
+
+    function clickexport(){
+        var datatablename1= $("#databasetable1").val();
+        var datatablename2= $("#databasetable2").val();
+        var datatablename3= $("#databasetable3").val();
+        var industrytablename=$("#industrytable").val();
+        var cleantable=$("#cleantablename").val();
+
+        if(datatablename1=='' || datatablename1=="" || datatablename1==undefined || datatablename1==null){
+            layer.alert("数据表一输入错误");
+            return;
+        }
+
+        if(datatablename2=='' || datatablename2=="" || datatablename2==undefined || datatablename2==null){
+            layer.alert("数据表二输入错误");
+            return;
+        }
+
+        if(datatablename3=='' || datatablename3=="" || datatablename3==undefined || datatablename3==null){
+            layer.alert("数据表三输入错误");
+            return;
+        }
+
+        if(industrytablename=='' || industrytablename=="" || industrytablename==undefined || industrytablename==null){
+            layer.alert("行业表输入错误");
+            return;
+        }
+
+        if(datatablename1==datatablename2 || datatablename2==datatablename3 || datatablename1==datatablename3){
+            layer.alert("数据表一、二、三中存在输入数据相等情况请查看");
+            return;
+        }
+        data={basetable1:datatablename1,basetable2:datatablename2,basetable3:datatablename3,industrytable:industrytablename,cleantable:cleantable};
+        $("#exportloadingModal").modal({backdrop:'static'});
+            //按Tab键遮罩层不会消失 ，默认值为true
+        $("#exportloadingModal").modal({keyboard:false});
+            //也可以一起运用
+            //backdrop 为 static 时，点击模态对话框的外部区域不会将其关闭。
+            //keyboard 为 false 时，按下 Esc 键不会关闭 Modal。
+        $('#exportloadingModal').modal({backdrop: 'static', keyboard: false});
+            //显示
+        $("#exportloadingModal").modal('show');
+
+        $.post('exportdatatotables',data,function(result){
+            if(result.result.status=='200'){
+                       $("#databasetable1").attr('disabled',false);
+                       $("#databasetable2").attr('disabled',false);
+                       $("#databasetable3").attr('disabled',false);
+                       $("#industrytable").attr('disabled',false);
+                       $("#cleantablename").attr('disabled',false);
+                       $("#exportbutton").attr('disabled',false);
+                       $("#exportloadingModal").modal('hide');
+                        layer.alert("信息导入成功！");
+                        return;
+                    }else if(result.result.status=='201'){
+                        resultdata=JSON.parse(result.result.data);
+                        var starttimes='';
+                        for(var i=0;i<resultdata.length;i++){
+                            starttimes+="任务id:"+resultdata[i].pk+" 开始时间:"+resultdata[i].fields.createtime+"\n ";
+                        }
+                        layer.alert("存在"+resultdata.length+"个未完成任务请等待,未完成任务信息如下：\n"+starttimes);
+                        $("#databasetable1").attr('disabled',true);
+                        $("#databasetable2").attr('disabled',true);
+                        $("#databasetable3").attr('disabled',true);
+                        $("#industrytable").attr('disabled',true);
+                        $("#cleantablename").attr('disabled',true);
+                        $("#exportbutton").attr('disabled',true);
+                        $("#exportloadingModal").modal('hide');
+                        return;
+                    }else if(result.result.status=='500'){
+                        layer.alert(result.result.msg);
+                        $("#databasetable1").attr('disabled',true);
+                        $("#databasetable2").attr('disabled',true);
+                        $("#databasetable3").attr('disabled',true);
+                        $("#industrytable").attr('disabled',true);
+                        $("#cleantablename").attr('disabled',true);
+                        $("#exportbutton").attr('disabled',true);
+                        $("#exportloadingModal").modal('hide');
+                    }
+        });
+    }
+
+    $("#databasetable1").bind('input propertychange',function(){
+        var channelNoInputBox1 = "channelNoInputBox1";
+        choosechannelNoInputBox=channelNoInputBox1;
+        var databasetable1 = "#databasetable1";
+        var currentpage1 = "#currentpage1";
+        var channelmenu1 = "#channel-menu1";
+        var page1="#paging1";
+        var previous1 = "#previous1";
+        var next1 = '#next1';
+
+        if($(databasetable1).val().length<=2){
+            $(channelmenu1).hide();
+            return;
+        }
+        data={'type':'orgdata','tablename':$(databasetable1).val()};
+        $.post('querytype',data,function (result) {
+            if(result.result.status=='200'){
+                if(result.result.data.length==0){
+                    msthridPlatformLis=[];
+                    $(channelmenu1).hide();
+                    delectChannelMenu(channelmenu1,page1,next1);
+                    getPageChannelMenu(channelNoInputBox1,databasetable1,channelmenu1,page1,next1,$(databasetable1).val());
+                }else{
+                    msthridPlatformLis=result.result.data;
+                    delectChannelMenu(channelmenu1,page1,next1);
+                    getPageChannelMenu(channelNoInputBox1,databasetable1,channelmenu1,page1,next1,$(databasetable1).val());
+                    $(channelmenu1).show();
+                }
+            }
+        });
+
+    });
+
+    $("#databasetable2").bind('input propertychange',function(){
+        var channelNoInputBox2 = "channelNoInputBox2";
+        choosechannelNoInputBox=channelNoInputBox2;
+        var databasetable2 = "#databasetable2";
+        var currentpage2 = "#currentpage2";
+        var channelmenu2 = "#channel-menu2";
+        var page2="#paging2";
+        var previous2 = "#previous2";
+        var next2 = '#next2';
+
+        if($(databasetable2).val().length<=2){
+            $(channelmenu2).hide();
+            return;
+        }
+        data={'type':'orgdata','tablename':$(databasetable2).val()};
+        $.post('querytype',data,function (result) {
+            if(result.result.status=='200'){
+                if(result.result.data.length==0){
+                    msthridPlatformLis=[];
+                    $(channelmenu2).hide();
+                    delectChannelMenu(channelmenu2,page2,next2);
+                    getPageChannelMenu(channelNoInputBox2,databasetable2,channelmenu2,page2,next2,$(databasetable2).val());
+                }else{
+                    msthridPlatformLis=result.result.data;
+                    delectChannelMenu(channelmenu2,page2,next2);
+                    getPageChannelMenu(channelNoInputBox2,databasetable2,channelmenu2,page2,next2,$(databasetable2).val());
+                    $(channelmenu2).show();
+                }
+            }
+        });
+    });
+
+    $("#databasetable3").bind('input propertychange',function(){
+        var channelNoInputBox3 = "channelNoInputBox3";
+        choosechannelNoInputBox=channelNoInputBox3;
+        var databasetable3 = "#databasetable3";
+        var currentpage3 = "#currentpage3";
+        var channelmenu3 = "#channel-menu3";
+        var page3="#paging3";
+        var previous3 = "#previous3";
+        var next3 = '#next3';
+
+        if($(databasetable3).val().length<=2){
+            $(channelmenu3).hide();
+            return;
+        }
+        data={'type':'orgdata','tablename':$(databasetable3).val()};
+        $.post('querytype',data,function (result) {
+            if(result.result.status=='200'){
+                if(result.result.data.length==0){
+                    msthridPlatformLis=[];
+                    $(channelmenu3).hide();
+                    delectChannelMenu(channelmenu3,page3,next3);
+                    getPageChannelMenu(channelNoInputBox3,databasetable3,channelmenu3,page3,next3,$(databasetable3).val());
+                }else{
+                    msthridPlatformLis=result.result.data;
+                    delectChannelMenu(channelmenu3,page3,next3);
+                    getPageChannelMenu(channelNoInputBox3,databasetable3,channelmenu3,page3,next3,$(databasetable3).val());
+                    $(channelmenu3).show();
+                }
+            }
+        });
+    });
+
+    $("#industrytable").bind('input propertychange',function(){
+        var channelNoInputBox4 = "channelNoInputBox4";
+        choosechannelNoInputBox=channelNoInputBox4;
+        var industrytable = "#industrytable";
+        var currentpage4 = "#currentpage4";
+        var channelmenu4 = "#channel-menu4";
+        var page4="#paging4";
+        var previous4 = "#previous4";
+        var next4 = '#next4';
+        data={'type':'industry','tablename':$(industrytable).val()};
+        $.post('querytype',data,function (result) {
+            if(result.result.status=='200'){
+                if(result.result.data.length==0){
+                    msthridPlatformLis=[];
+                    $(channelmenu4).hide();
+                    delectChannelMenu(channelmenu4,page4,next4);
+                    getPageChannelMenu(channelNoInputBox4,industrytable,channelmenu4,page4,next4,$(industrytable).val());
+                }else{
+                    msthridPlatformLis=result.result.data;
+                    delectChannelMenu(channelmenu4,page4,next4);
+                    getPageChannelMenu(channelNoInputBox4,industrytable,channelmenu4,page4,next4,$(industrytable).val());
+                    $(channelmenu4).show();
+                }
+            }
+        });
+    });
+
+    $(document).on('click',function(){
+        $("#channel-menu1").hide();
+        $("#channel-menu2").hide();
+        $("#channel-menu3").hide();
+        $("#channel-menu4").hide();
+    });
+
+    // #channel-menu  #paging #next
+    function delectChannelMenu(channelmenu,paging,next){
+        var count=$(channelmenu).children().length;
+        for(var i=0;i<count-2;i++){
+            $(paging).prev().prev().remove();
+        }
+        var pagesCount=$($(paging).children()[0]).children().length;
+        for(var i=0;i<pagesCount-2;i++){
+            $(next).parent().prev().remove();
+        }
+    }
+    //  #channel-menu #paging #next #databasetable1 channelNoInputBox
+    function LoadChannelMenu(channelmenu,channelNoInputBox,databasetable,next,paging,obj,pageCount){
+        var menuObj = $(paging).prev();
+        for(var i=0;i<obj.length;i++){
+            {#menuObj.before('<li><a href="#">'+obj[i].channelCode+'|'+obj[i].channelName+'</a><input type="hidden" value="'+obj[i].channelCode+'"></li>');#}
+            menuObj.before('<li><a href="#">'+obj[i].dirpath+'|'+obj[i].createtime+'</a></li>');
+        }
+        var htmlObj="";
+        for(var i=1;i<=pageCount;i++){
+            htmlObj+='<li><a href="#" data-stopPropagation="true" onclick="turnPage(this,event)">'+i+'</a></li>';
+            if(i==5){
+                break;
+            }
+        }
+        $(next).parent().before(htmlObj);
+        $('a').click(function(){
+            var id=$(this).parent().parent().parent().attr("id");
+            if(id==choosechannelNoInputBox || ("#"+id)==choosechannelNoInputBox){
+                //操作选择渠道
+                var tablenamearray=$(this).html().split("|");
+                $(databasetable).val(tablenamearray[0]);
+                $(channelmenu).hide();
+            }
+        });
+        $("ul.dropdown-menu").on("click", "[data-stopPropagation]", function(e) {
+            e.stopPropagation();
+        });
+    }
+
+    function getPageChannelMenu(channelNoInputBox,databasetable,channelmenu,paging,next,channelCode){
+          onepagelimit=5;
+          pageCount=Math.ceil(msthridPlatformLis.length/onepagelimit);
+          if(msthridPlatformLis.length>5){
+              var tmpsthridPlatformLis=[];
+              for(var i= 0;i<5;i++){
+                if(i>=msthridPlatformLis.length){
+                    break;
+                }
+                tmpsthridPlatformLis[i] = msthridPlatformLis[i];
+              }
+              delectChannelMenu(channelmenu,paging,next);
+              LoadChannelMenu(channelmenu,channelNoInputBox,databasetable,next,paging,tmpsthridPlatformLis,pageCount);
+          }else{
+              delectChannelMenu(channelmenu,paging,next);
+              LoadChannelMenu(channelmenu,channelNoInputBox,databasetable,next,paging,msthridPlatformLis,pageCount);
+          }
+    }
+
+
+    // #currentpage
+    function prevPage(id){
+        var paging = "#"+$("#"+id).parent().parent().parent()[0].id;
+        var channelmenu = "#"+$("#"+id).parent().parent().parent().parent()[0].id;
+        var channelNoInputBox = "#"+$("#"+id).parent().parent().parent().parent().parent()[0].id;
+        var currentpageid = "#"+$("#"+id).parent().parent().parent().parent().prev()[0].id;
+        var databasetable ="#"+$("#"+id).parent().parent().parent().parent().prev().prev()[0].id;
+        var next="#" + next + id[id.length-1]
+
+        var currentpage= parseInt($(currentpageid).val());
+        var showpage=currentpage-1;
+
+        if(showpage<1){
+            showpage=pageCount;
+            //getPage(showpage);
+            getPage(channelmenu,channelNoInputBox,databasetable,next,paging,showpage);
+            $(currentpageid).val(showpage);
+        }else{
+            //getPage(showpage);
+            getPage(channelmenu,channelNoInputBox,databasetable,next,paging,showpage);
+            $(currentpageid).val(showpage);
+        }
+    }
+
+
+    // LoadChannelMenu(channelmenu,channelNoInputBox,databasetable,next,paging,obj,pageCount)
+    // #currentpage
+    function nextPage(id){
+        var paging = "#"+$("#"+id).parent().parent().parent()[0].id;
+        var channelmenu = "#"+$("#"+id).parent().parent().parent().parent()[0].id;
+        var channelNoInputBox = "#"+$("#"+id).parent().parent().parent().parent().parent()[0].id;
+        var currentpageid = "#"+$("#"+id).parent().parent().parent().parent().prev()[0].id;
+        var databasetable ="#"+$("#"+id).parent().parent().parent().parent().prev().prev()[0].id;
+        var next="#"+id;
+
+        var currentpage=  parseInt($(currentpageid).val());
+        var showpage=currentpage+1;
+        if(showpage>pageCount){
+            showpage=1;
+            getPage(channelmenu,channelNoInputBox,databasetable,next,paging,showpage);
+            $(currentpageid).val(showpage);
+        }else{
+            getPage(channelmenu,channelNoInputBox,databasetable,next,paging,showpage);
+            $(currentpageid).val(showpage);
+        }
+    }
+
+    function getPage(channelmenu,channelNoInputBox,databasetable,next,paging,vcurrentpage){
+        var turnmsthridPlatformLis = [];
+        var start=vcurrentpage-1;
+        for(var i= start*onepagelimit,j=0;j<5;j++,i++){
+            if(i>=msthridPlatformLis.length){
+                break;
+            }
+            turnmsthridPlatformLis.push(msthridPlatformLis[i])
+        }
+        delectChannelMenu(channelmenu,paging,next);
+        LoadChannelMenu(channelmenu,channelNoInputBox,databasetable,next,paging,turnmsthridPlatformLis,pageCount);
+    }
+
+    function turnPage(page,e){
+        if(e.stopPropagation){
+            e.stopPropagation();
+        }else{
+            e.cancelBubble = true;
+        }
+        var paging = "#"+page.parentElement.parentNode.parentNode.id;
+        var channelmenu = "#"+page.parentElement.parentNode.parentNode.parentNode.id;
+        var channelNoInputBox = "#"+page.parentElement.parentNode.parentNode.parentNode.parentNode;
+        var currentpageid = "#"+page.parentElement.parentNode.parentNode.parentNode.parentNode.children[1].id;
+        var databasetable ="#"+page.parentElement.parentNode.parentNode.parentNode.parentNode.children[0].id;
+        var next="#"+page.parentElement.parentNode.childNodes [page.parentElement.parentNode.childNodes.length-2].childNodes[0].id;
+        $(currentpageid).val(page.innerHTML);
+        getPage(channelmenu,channelNoInputBox,databasetable,next,paging,page.innerHTML);
+    }
+
+</script>
+</html>

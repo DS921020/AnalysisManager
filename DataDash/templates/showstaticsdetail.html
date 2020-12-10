@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>产品信息数据</title>
+</head>
+    <script type="text/javascript" src="/static/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/echarts-4.7.0/dist/echarts.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/Layer/layer.js"></script>
+    <link rel="stylesheet" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/plugins/Layer/skin/default/layer.css">
+    <link rel="stylesheet" href="/static/css/demo.css">
+<body>
+       <div id="explore-container2" style="margin-left: 20%;margin-top: 10%;">
+        <div class="chart-list-pane">
+            <div class="row">
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                    <div class="chart1">
+                        <div class="chart1-link">
+                             <div class="chart1-area">
+                                <div id="container2" style="height:400px"></div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6"></div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                     <div class="chart2">
+                        <div class="chart2-link">
+                             <div class="chart2-area">
+                                <div id="container3" style="height:400px"></div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+       </div>
+</body>
+<script>
+    var dom2 = document.getElementById("container2");
+    var dom3 = document.getElementById("container3");
+    var myChart2 = echarts.init(dom2);
+    var myChart3 = echarts.init(dom3);
+    var app = {};
+    option = null;
+    option = {
+                            tooltip: {
+                                trigger: 'item',
+                                formatter: "{a} <br/>{b} : {c}%"
+                            },
+                            toolbox: {
+                                feature: {
+                                    dataView: {readOnly: false},
+                                    restore: {},
+                                    saveAsImage: {}
+                                },
+                                 x:'right',
+                                 y:'bottom'
+                            },
+                            series: [
+                                {
+                                    type:'funnel',
+                                    left: '10%',
+                                    top: 60,
+                                    //x2: 80,
+                                    bottom: 60,
+                                    width: '80%',
+                                    // height: {totalHeight} - y - y2,
+                                    min: 0,
+                                    max: 100,
+                                    minSize: '0%',
+                                    maxSize: '100%',
+                                    sort: 'descending',
+                                    gap: 2,
+                                    label: {
+                                        show: true,
+                                        position: 'inside'
+                                    },
+                                    labelLine: {
+                                        length: 10,
+                                        lineStyle: {
+                                            width: 1,
+                                            type: 'solid'
+                                        }
+                                    },
+                                    itemStyle: {
+                                        borderColor: '#fff',
+                                        borderWidth: 1
+                                    },
+                                    emphasis: {
+                                        label: {
+                                            fontSize: 8
+                                        }
+                                    }
+                                }
+                            ]
+                        };
+
+     option1 = null;
+     option1 = {
+                            tooltip: {
+                                trigger: 'item',
+                                formatter: "{a} <br/>{b}:{c}%"
+                            },
+                            toolbox: {
+                                feature: {
+                                    dataView: {readOnly: false},
+                                    restore: {},
+                                    saveAsImage: {}
+                                },
+                                 x:'right',
+                                 y:'bottom'
+                            },
+                            series: [
+                                {
+                                    type:'funnel',
+                                    left: '10%',
+                                    top: 60,
+                                    //x2: 80,
+                                    bottom: 60,
+                                    width: '80%',
+                                    // height: {totalHeight} - y - y2,
+                                    min: 0,
+                                    max: 100,
+                                    minSize: '0%',
+                                    maxSize: '100%',
+                                    sort: 'descending',
+                                    gap: 2,
+                                    label: {
+                                        show: true,
+                                        position: 'inside'
+                                    },
+                                    labelLine: {
+                                        length: 10,
+                                        lineStyle: {
+                                            width: 1,
+                                            type: 'solid'
+                                        }
+                                    },
+                                    itemStyle: {
+                                        borderColor: '#fff',
+                                        borderWidth: 1
+                                    },
+                                    emphasis: {
+                                        label: {
+                                            fontSize: 8
+                                        }
+                                    }
+                                }
+                            ]
+                        };
+
+    $(function () {
+        var cleantablename = getUrlParam('cleantablename');
+        var industrytable = getUrlParam('industrytable');
+        var dirpath = getUrlParam('dirpath');
+        var proname = decodeURIComponent(getUrlParam('proname'));
+         data={'cleantablename':cleantablename,'industrytable':industrytable,'dirpath':dirpath,'proname':proname};
+         $.post('/DataModel/ShowDetailData',data,function(result){
+             if(result.result.status='200'){
+                 var text=proname+'高价值行业占比';
+                 var name=text;
+                 var text1=proname+'高渗透行业占比';
+                 var name1=text1;
+
+                 myChart2.setOption({
+                     title: {
+                                text: text,
+                                x:'center',
+                                y: 'top'
+                            },
+                    /*legend: {
+                    orient:'vertical',
+                    left:'center',
+                    bottom:'bottom',
+                    data:result.result.data.mvplegendlist
+                    },*/
+                    series:[{
+                                     name:name,
+                                    data:result.result.data.mvp
+                            }
+                    ]
+                });
+                 myChart3.setOption({
+                     title: {
+                                text: text1,
+                                x:'center',
+                                y: 'top'
+                            },
+                    /*legend: {
+                    orient:'vertical',
+                    left:'center',
+                    bottom:'bottom',
+                    data: result.result.data.mgplegendlist
+                    },*/
+                    series:[{
+                                     name:name1,
+                                     data:result.result.data.mgp
+                                }
+                            ]
+                });
+             }
+             if(result.result.status=='500'){
+                layer.alert("异常："+result.result.msg)
+             }
+         });
+    myChart2.setOption(option, true);
+    myChart3.setOption(option1, true);
+    });
+
+ //获取url中的参数
+function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+        var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+        if (r != null) return r[2]; return null; //返回参数值
+}
+
+</script>
+
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="/static/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-table-develop/dist/bootstrap-table.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-table-develop/dist/locale/bootstrap-table-zh-CN.js"></script>
+    <script type="text/javascript" src="/static/plugins/Layer/layer.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-datetimepicker/js/locales/bootstrap-datetimepicker.fr.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-datetimepicker/js/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+    <link rel="stylesheet" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/plugins/bootstrap-table-develop/dist/bootstrap-table.css">
+    <link rel="stylesheet" type="text/css" href="/static/plugins/Layer/skin/default/layer.css">
+    <link rel="stylesheet" type="text/css" href="/static/plugins/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="panel-body">
+             <div class="form-group" style="margin-bottom: 40px">
+                <div class="col-md-2">
+                    <label>清洗表名称:</label>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="analysistablename">
+                </div>
+                <div class="col-md-2">
+                    <label>行业表名称:</label>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="analysisindustryname">
+                </div>
+             </div>
+             <div class="form-group" style="margin-bottom: 40px">
+                <div class="col-md-2">
+                    <label>状态:</label>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-control" id="analysisstatus" >
+                                    <option value=""></option>
+                                    <option value="0">进行中</option>
+                                    <option value="1">完成</option>
+                                    <option value="2">异常</option>
+                    </select>
+                </div>
+              <div class="col-md-2">
+                    <label>创建时间:</label>
+                </div>
+                <div class="col-md-4">
+                    <input class="form-control input-inline input-sm form_datetime"  name="analysiscreatetime"
+                           id="analysiscreatetime" size="12" type="text" data-date-format="yyyy-mm-dd"/>
+                </div>
+             </div>
+             <div class="form-group" style="margin-top: 80px">
+                <div class="col-md-2">
+                    <label>更新时间:</label>
+                </div>
+                <div class="col-md-4">
+                    <input class="form-control input-inline input-sm form_datetime"  name="analysisupdatetime"
+                           id="analysisupdatetime" size="12" type="text" data-date-format="yyyy-mm-dd"/>
+                </div>
+                 <div style="float:right">
+                     <button type="button" class="btn btn-primary" style="width: 100px;" onclick="analysisclickquery()" id="analysisquerybutton">查询</button>
+                     <button type="button" class="btn btn-primary" style="width: 100px;" onclick="analysisclickreset()" id="analysisresetbutton">重置</button>
+                 </div>
+            </div>
+        </div>
+        <table id="analysisgrid"></table>
+    </div>
+</body>
+<script>
+    var $analysisgridtable;
+     $("#analysiscreatetime").datetimepicker({
+            format:'yyyy-mm-dd',
+            autoclose: true,   //选择后自动关闭当前时间控件
+            language:'zh-CN',
+            minView:'month',
+        });
+    $("#analysisupdatetime").datetimepicker({
+            format: "yyyy-mm-dd", //时间格式
+            autoclose: true,   //选择后自动关闭当前时间控件
+            language:'zh-CN',
+             minView:'month',
+        });
+    $(function (){
+        InitMainTable();
+    });
+    //初始化bootstrap-table的内容
+    function InitMainTable () {
+            //记录页面bootstrap-table全局变量$table，方便应用
+            var queryUrl = '/DataModel/queryanalysisstatus';
+            $analysisgridtable = $('#analysisgrid').bootstrapTable({
+                url: queryUrl,                      //请求后台的URL（*）
+                method: 'GET',                      //请求方式（*）
+                //toolbar: '#toolbar',              //工具按钮用哪个容器
+                striped: true,                      //是否显示行间隔色
+                cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: true,                   //是否显示分页（*）
+                sortable: true,                     //是否启用排序
+                sortOrder: "asc",                   //排序方式
+                sidePagination: "server",           //分页方式：client客户端分页，server服务端分页（*）
+                pageNumber: 1,                      //初始化加载第一页，默认第一页,并记录
+                pageSize: 10,                     //每页的记录行数（*）
+                pageList: [10, 25, 50, 100],        //可供选择的每页的行数（*）
+                search: false,                      //是否显示表格搜索
+                strictSearch: true,
+                showColumns: false,                  //是否显示所有的列（选择显示的列）
+                showRefresh: false,                  //是否显示刷新按钮
+                minimumCountColumns: 2,             //最少允许的列数
+                clickToSelect: false,                //是否启用点击选中行
+                //height: 500,                      //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+                uniqueId: "id",                     //每一行的唯一标识，一般为主键列
+                showToggle: false,                   //是否显示详细视图和列表视图的切换按钮
+                cardView: false,                    //是否显示详细视图
+                detailView: false,                  //是否显示父子表
+                singleSelect: false, //开启单选,想要获取被选中的行数据必须要有该参数
+                //得到查询的参数
+                queryParams : function (params) {
+                    //这里的键的名字和控制器的变量名必须一致，这边改动，控制器也需要改成一样的
+                    var temp = {
+                        rows: params.limit,                         //页面大小
+                        page: (params.offset / params.limit) + 1,   //页码
+                        sort: params.sort,      //排序列名
+                        sortOrder: params.order,   //排位命令（desc，asc）
+                        pageSize:this.pageSize,
+                        analysistablename:$("#analysistablename").val(),
+                        industry:$("#analysisindustryname").val(),
+                        status:$("#analysisstatus").val(),
+                        createtime:$("#analysiscreatetime").val(),
+                        updatetime:$("#analysisupdatetime").val()
+                    };
+                    return temp;
+                },
+                columns: [
+                    {
+                    field: 'id',
+                    title: '唯一标识',
+                    width: 80
+                }, {
+                    field: 'cleantablename',
+                    title: '清洗表名称',
+                    width:120,
+                    sortable: false
+                },{
+                    field: 'industrytablename',
+                    title: '行业表名称',
+                    sortable: false
+                }, {
+                    field: 'dirpath',
+                    title: '分析数据文件夹名称'
+                },{
+                    field: 'status',
+                    title: '状态',
+                    formatter:transtatus
+                },{
+                    field: 'createtime',
+                    title: '创建时间',
+                    sortable: false,
+                    formatter:trancreattime
+                }, {
+                    field: 'updatetime',
+                    title: '更新时间',
+                    sortable: false,
+                    formatter:tranupdatetime
+                }, {
+                    field: 'exceptionmsgs',
+                    title: '异常信息',
+                    sortable: false,
+                },{
+                    title: '操作',
+                    width: 120,
+                    align: 'center',
+                    valign: 'middle',
+                    formatter:ActionFormatter
+                }],
+                onLoadSuccess: function () {
+                },
+                onLoadError: function () {
+                },
+                onDblClickRow: function (row, $element) {
+                },
+            });
+        }
+
+
+    function ActionFormatter(value, row, index) {
+             var id = row.id;
+             var result = "";
+             result += "<a href='javascript:;' class='btn btn-xs blue' onclick=\"DownLoadFiles('"+id+"')\" title='下载'><span class='glyphicon glyphicon-download-alt'></span></a>";
+             result += "<a href='javascript:;' class='btn btn-xs red' onclick=\"QueryAnalysisRes('"+id+"')\" title='查看'><span class='glyphicon glyphicon-search'></span></a>"
+             return result;
+    }
+
+    function DownLoadFiles(id){
+         var rowData = $("#analysisgrid").bootstrapTable('getRowByUniqueId',id);
+         if(rowData.status=='0' || rowData.status=='2'){
+            layer.alert("该状态不支持下载");
+            return;
+        }
+         var url = 'DataModel/downloadfile?cleantablename='+rowData.cleantablename+'&industrytable='+rowData.industrytablename+'&dirpath='+rowData.dirpath;
+         window.open(url);
+    }
+
+    function QueryAnalysisRes(id){
+         var rowData = $("#analysisgrid").bootstrapTable('getRowByUniqueId',id);
+         if(rowData.status=='0' || rowData.status=='2'){
+            layer.alert("该状态不支持查看");
+            return;
+        }
+        var url = 'DataModel/queryAnalysisresult?cleantablename='+rowData.cleantablename+'&industrytable='+rowData.industrytablename+'&dirpath='+rowData.dirpath;
+        window.open(url);
+    }
+
+    function trancreattime(value){
+        return formatDate(value);
+    }
+    function tranupdatetime(value){
+        return formatDate(value);
+    }
+
+    function transtatus(value){
+        if(value=='0'){
+            return '运行中'
+        }
+        if(value=='1'){
+            return '完成';
+        }
+        if(value=='2'){
+            return '异常';
+        }
+    }
+
+      //时间戳转换方法    date:时间戳数字
+    function formatDate(date) {
+      var date = new Date(date);
+      var YY = date.getFullYear() + '-';
+      var MM = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+      var DD = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate());
+      var hh = (date.getHours() < 10 ? '0' + date.getHours() : date.getHours()) + ':';
+      var mm = (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()) + ':';
+      var ss = (date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds());
+      return YY + MM + DD +" "+hh + mm + ss;
+    }
+
+    function analysisclickquery(){
+        $("#analysisgrid").bootstrapTable("refreshOptions", {
+                pageNumber: 1 ,
+                queryParams : function (params) {
+                    //这里的键的名字和控制器的变量名必须一致，这边改动，控制器也需要改成一样的
+                    var temp = {
+                        rows: params.limit,                         //页面大小
+                        page: (params.offset / params.limit) + 1,   //页码
+                        sort: params.sort,      //排序列名
+                        sortOrder: params.order,   //排位命令（desc，asc）
+                        pageSize:this.pageSize,
+                        analysistablename:$("#analysistablename").val(),
+                        industry:$("#analysisindustryname").val(),
+                        status:$("#analysisstatus").val(),
+                        createtime:$("#analysiscreatetime").val(),
+                        updatetime:$("#analysisupdatetime").val()
+                    };
+                    return temp;
+                }
+            }
+        );
+    }
+
+    function analysisclickreset(){
+          $("#analysistablename").val('');
+          $("#analysisindustryname").val('');
+          $("#analysisstatus").val('');
+          $("#analysiscreatetime").val('');
+          $("#analysisupdatetime").val('');
+    }
+
+</script>
+</html>

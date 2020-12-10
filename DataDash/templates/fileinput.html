@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<head>
+<title>文件上传</title>
+<meta charset="utf-8"/>
+    <script type="text/javascript" src="/static/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-fileinput/js/fileinput.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-fileinput/js/locales/zh.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/static/plugins/Layer/layer.js"></script>
+    <link rel="stylesheet" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/plugins/bootstrap-fileinput/css/fileinput.min.css" type="text/css"/>
+    <link rel="stylesheet" type="text/css" href="/static/plugins/Layer/skin/default/layer.css">
+</head>
+<body>
+    <div class="container">
+            <div class="panel panel-primary">
+                 <div class="panel-heading"><span class="text-center" style="font-size:120%;">产品信息表数据录入</span></div>
+             </div>
+             <div class="panel panel-primary">
+                <div class="panel-heading ">基础信息设置</div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <div class="col-md-2">
+                                <label>文件夹名称设置:</label>
+                            </div>
+                            <div class="col-md-4">
+                                 <input type="text" class="form-control" id="basefoldername" onblur="checkdir()">
+                            </div>
+                            <div class="col-md-2">
+                                <label>创建表名设置:</label>
+                            </div>
+                            <div class="col-md-4">
+                                 <input type="text" class="form-control" id="basetablename">
+                            </div>
+                            <div class="col-md-2">
+                                <label>导入数据表:</label>
+                            </div>
+                             <div class="col-md-4">
+                                 <select class="form-control" id="baseselectdatetype" disabled="disabled">
+                                    <option value="orgdata">数据表</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+             </div>
+             <div class="panel panel-primary">
+                    <div class="panel-heading ">Excel导入</div>
+                        <div class="panel-body">
+                            <div class="row">
+                                    <input id="input-id" name="file" multiple type="file" data-show-caption="true">
+                            </div>
+                        </div>
+                         <button type="button" class="btn btn-primary" style="width: 100px;float:right;" onclick="clickexport()" id="exportbutton">导入</button>
+             </div>
+
+    </div>
+    <div class="modal fade" id="baseloadingModal">
+                <div style="width: 200px;height:20px; z-index: 20000; position:
+                absolute; text-align: center; left: 50%; top: 50%;margin-left:-100px;margin-top:-10px">
+                    <div class="progress progress-striped active" style="margin-bottom: 0;">
+                         <div class="progress-bar" style="width: 100%;"></div>
+                    </div>
+                    <h5>数据录入（大概十多分钟）,请耐心等待...........</h5>
+                </div>
+    </div>
+</body>
+<script type="text/javascript">
+    function checkdir() {
+        if($("#basefoldername").val()==='' || $("#basefoldername").val()===undefined || $("#basefoldername").val()===null){
+             layer.alert("文件夹名称输入错误，请重新输入");
+            return;
+        }
+        data={'foldername':$("#basefoldername").val()};
+        $.post("DataModel/checkdir",data,function(result){
+                if(result.result.status=='202'){
+                        layer.alert("系统存在相同文件夹，请重新命名。目前存在文件夹包括："+result.result.data);
+                        return;
+                    }else if(result.result.status=='500'){
+                        layer.alert(result.result.msg);
+                        return;
+                    }
+                $("#basetablename").val($("#basefoldername").val());
+                $("#basetablename").attr('disabled',true)
+        });
+    }
+
+    function clickexport(){
+            var tablename=$("#basetablename").val();
+            var foldername=$("#basefoldername").val();
+            var tabletype=$("#baseselectdatetype").val();
+            if(tablename===null || tablename==='' || tablename===undefined
+                || foldername===null || foldername==='' || foldername===undefined
+                || tabletype===null || tabletype==='' || tabletype===undefined ||
+                tablename!=foldername){
+                layer.alert("输入参数有误或者导入文件未上传,请保持表名文件夹名一致，请检查");
+                return
+            }
+            data = {tablename:tablename,foldername:foldername,tabletype:tabletype};
+             $("#baseloadingModal").modal({backdrop:'static'});
+            //按Tab键遮罩层不会消失 ，默认值为true
+            $("#baseloadingModal").modal({keyboard:false});
+            //也可以一起运用
+            //backdrop 为 static 时，点击模态对话框的外部区域不会将其关闭。
+            //keyboard 为 false 时，按下 Esc 键不会关闭 Modal。
+            $('#baseloadingModal').modal({backdrop: 'static', keyboard: false});
+            //显示
+            $("#baseloadingModal").modal('show');
+            $.post("DataModel/createtableandaddbasedata",data,function(result){
+                if(result.result.status=='200'){
+                        $('#basetablename').attr('disabled',false);
+                        $('#basefoldername').attr('disabled',false);
+                        $('#input-id').attr('disabled',false);
+                        $('#exportbutton').attr('disabled',false);
+                        $("#baseloadingModal").modal('hide');
+                        layer.alert("信息导入成功！");
+                        return;
+                    }else if(result.result.status=='201'){
+                        resultdata=JSON.parse(result.result.data);
+                        var starttimes='';
+                        for(var i=0;i<resultdata.length;i++){
+                            starttimes+="任务id:"+resultdata[i].pk+" 开始时间:"+resultdata[i].fields.createtime+"\n ";
+                        }
+                        layer.alert("存在"+resultdata.length+"个未完成任务请等待,未完成任务信息如下：\n"+starttimes);
+                        $('#basetablename').attr('disabled',true);
+                        $('#basefoldername').attr('disabled',true);
+                        $('#input-id').attr('disabled',true);
+                        $('#exportbutton').attr('disabled',true);
+                        $("#baseloadingModal").modal('hide');
+                        return;
+                    }else if(result.result.status=='202'){
+                        layer.alert("系统已存在相同文件夹，请重新命名。目前存在的文件夹包括："+result.result.data);
+                        $("#baseloadingModal").modal('hide');
+                        return;
+                    }else if(result.result.status=='500'){
+                        layer.alert(result.result.msg);
+                        $('#basetablename').attr('disabled',true);
+                        $('#basefoldername').attr('disabled',true);
+                        $('#input-id').attr('disabled',true);
+                        $('#exportbutton').attr('disabled',true);
+                        $("#baseloadingModal").modal('hide');
+                    }
+             });
+    }
+    function getNowFormatDate() {
+        var date = new Date();
+        var month = date.getMonth() + 1;
+        var strDate = date.getDate();
+        if (month >= 1 && month <= 9) {
+            month = "0" + month;
+        }
+        if (strDate >= 0 && strDate <= 9) {
+            strDate = "0" + strDate;
+        }
+        var currentdate = date.getFullYear()  + month + strDate
+                + date.getHours()  + date.getMinutes()
+             + date.getSeconds();
+        return currentdate;
+    }
+    $(function (){
+        {#$("#loadingModal").modal({backdrop:'static'});#}
+        {#//按Tab键遮罩层不会消失 ，默认值为true#}
+        {#$("#loadingModal").modal({keyboard:false});#}
+        {#//也可以一起运用#}
+        {#//backdrop 为 static 时，点击模态对话框的外部区域不会将其关闭。#}
+        {#//keyboard 为 false 时，按下 Esc 键不会关闭 Modal。#}
+        {#$('#loadingModal').modal({backdrop: 'static', keyboard: false});#}
+        {# $("#loadingModal").modal('hide');#}
+        initFileInput("input-id");
+        {#后台查询目前是否存在未完成列表#}
+        data={'type':"orgdata"};
+        $.post("DataModel/querybasedatastatus",data,function(result){
+            if(result.result.status=='200'){
+                $('#basetablename').attr('disabled',false);
+                $('#basefoldername').attr('disabled',false);
+                $('#input-id').attr('disabled',false);
+                $('#exportbutton').attr('disabled',false);
+                return;
+            }else if(result.result.status=='201'){
+                resultdata=JSON.parse(result.result.data);
+                var starttimes='';
+                for(var i=0;i<resultdata.length;i++){
+                    starttimes+="任务id:"+resultdata[i].pk+" 开始时间:"+resultdata[i].fields.createtime+"\n ";
+                }
+                layer.alert("存在"+resultdata.length+"个未完成任务请等待,未完成任务信息如下：\n"+starttimes);
+                $('#basetablename').attr('disabled',true);
+                $('#basefoldername').attr('disabled',true);
+                $('#input-id').attr('disabled',true);
+                $('#exportbutton').attr('disabled',true);
+                return;
+            }else if(result.result.status=='202'){
+                resultdata=JSON.parse(result.result.data);
+                layer.alert("系统已存在相同文件夹，请重新命名。存在的文件家包括："+resultdata);
+                return;
+            }else if(result.result.status=='500'){
+                layer.alert(result.result.msg);
+                $('#basetablename').attr('disabled',true);
+                $('#basefoldername').attr('disabled',true);
+                $('#input-id').attr('disabled',true);
+                $('#exportbutton').attr('disabled',true);
+            }
+        });
+    });
+    function initFileInput(ctrlName) {
+        var control = $('#' + ctrlName);
+        control.fileinput({
+            language: 'zh', //设置语言
+            uploadUrl: "/DataModel/uploadfile/", //上传的地址
+            allowedFileExtensions: ['jpg', 'gif', 'png','doc','docx','pdf','ppt','pptx','txt','xlsx','csv'],//接收的文件后缀
+            maxFilesNum : 5,//上传最大的文件数量
+            //uploadExtraData:{"id": 1, "fileName":'123.mp3'},
+            uploadAsync: true, //默认异步上传
+            showUpload: true, //是否显示上传按钮
+            showRemove : true, //显示移除按钮
+            showPreview : true, //是否显示预览
+            showCaption: true,//是否显示标题
+            browseClass: "btn btn-primary", //按钮样式
+            dropZoneEnabled: true,//是否显示拖拽区域
+            //minImageWidth: 50, //图片的最小宽度
+            //minImageHeight: 50,//图片的最小高度
+            //maxImageWidth: 1000,//图片的最大宽度
+            //maxImageHeight: 1000,//图片的最大高度
+            maxFileSize: 0,//单位为kb，如果为0表示不限制文件大小
+            //minFileCount: 0,
+            //maxFileCount: 10, //表示允许同时上传的最大文件个数
+            enctype: 'multipart/form-data',
+            validateInitialCount:true,
+            previewFileIcon: "<i class='glyphicon glyphicon-king'></i>",
+            msgFilesTooMany: "选择上传的文件数量({n}) 超过允许的最大数值{m}！",
+            uploadExtraData:function(){//向后台传递参数
+             var data={
+                 foldername:$("#basefoldername").val()
+                };
+             return data;
+            },
+        }).on('filepreupload', function(event, data, previewId, index) { //上传中
+            var form = data.form, files = data.files, extra = data.extra,
+            response = data.response, reader = data.reader;
+            console.log('文件正在上传');
+        }).on("fileuploaded", function (event, data, previewId, index) { //一个文件上传成功
+                console.log('文件上传成功！'+data.id);
+        }).on('fileerror', function(event, data, msg) { //一个文件上传失败
+                console.log('文件上传失败！'+data.id);
+         })
+    }
+ </script>
+</html>

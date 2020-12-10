@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>分析结构展示</title>
+</head>
+    <script type="text/javascript" src="/static/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/echarts-4.7.0/dist/echarts.min.js"></script>
+    <script type="text/javascript" src="/static/plugins/Layer/layer.js"></script>
+    <link rel="stylesheet" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/plugins/Layer/skin/default/layer.css">
+    <link rel="stylesheet" href="/static/css/demo.css">
+<body>
+    <div id="explore-container">
+        <div class="chart-list-panel">
+            <div class="row">
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                    <div class="chart1">
+                        <div class="chart1-link">
+                             <div class="chart1-area">
+                                <div id="container" style="height:400px"></div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6"></div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                     <div class="chart2">
+                        <div class="chart2-link">
+                             <div class="chart2-area">
+                                <div id="container1" style="height:400px"></div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row"></div>
+        <div class="chart-list-panel">
+            <div class="row" id="chart-row-line">
+
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">#}
+{#                    <div class="chart">#}
+{#                        <a target="_blank" class="chart-link" href="./editor.html?c=line-simple">#}
+{#                            <h4 class="chart-title">Basic Line Chart</h4>#}
+{#                            <img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+
+            </div>
+        </div>
+</body>
+<script>
+var dom = document.getElementById("container");
+var dom1 = document.getElementById("container1");
+var myChart = echarts.init(dom);
+var myChart1 = echarts.init(dom1);
+var app = {};
+option = null;
+option = {
+    title: {
+        text: '排名前六高价值行业占比'
+    },
+    tooltip: {
+        trigger: 'item',
+        formatter: "{a} <br/>{b} : {c}%"
+    },
+    toolbox: {
+        feature: {
+            dataView: {readOnly: false},
+            restore: {},
+            saveAsImage: {}
+        }
+    },
+    series: [
+        {
+            name:'排名前六高价值行业占比',
+            type:'funnel',
+            left: '10%',
+            top: 60,
+            //x2: 80,
+            bottom: 60,
+            width: '80%',
+            // height: {totalHeight} - y - y2,
+            min: 0,
+            max: 100,
+            minSize: '0%',
+            maxSize: '100%',
+            sort: 'descending',
+            gap: 2,
+            label: {
+                show: true,
+                position: 'inside'
+            },
+            labelLine: {
+                length: 10,
+                lineStyle: {
+                    width: 1,
+                    type: 'solid'
+                }
+            },
+            itemStyle: {
+                borderColor: '#fff',
+                borderWidth: 1
+            },
+            emphasis: {
+                label: {
+                    fontSize: 8
+                }
+            }
+        }
+    ]
+};
+option1 = null;
+option1 = {
+    title: {
+        text: '排名前六高渗透行业占比'
+    },
+    tooltip: {
+        trigger: 'item',
+        formatter: "{a} <br/>{b}:{c}%"
+    },
+    toolbox: {
+        feature: {
+            dataView: {readOnly: false},
+            restore: {},
+            saveAsImage: {}
+        }
+    },
+    legend: {
+        orient:'vertical',
+        left:'center',
+        bottom:'bottom'
+    },
+    series: [
+        {
+            name:'排名前六高渗透行业占比',
+            type:'funnel',
+            left: '10%',
+            top: 60,
+            //x2: 80,
+            bottom: 60,
+            width: '80%',
+            // height: {totalHeight} - y - y2,
+            min: 0,
+            max: 100,
+            minSize: '0%',
+            maxSize: '100%',
+            sort: 'descending',
+            gap: 2,
+            label: {
+                show: true,
+                position: 'inside'
+            },
+            labelLine: {
+                length: 10,
+                lineStyle: {
+                    width: 1,
+                    type: 'solid'
+                }
+            },
+            itemStyle: {
+                borderColor: '#fff',
+                borderWidth: 1
+            },
+            emphasis: {
+                label: {
+                    fontSize: 8
+                }
+            }
+        }
+    ]
+};
+
+ $(function (){
+     var cleantablename=getUrlParam('cleantablename');
+     var industrytable=getUrlParam('industrytable');
+     var dirpath=getUrlParam('dirpath');
+     data={'cleantablename':cleantablename,'industrytable':industrytable,'dirpath':dirpath};
+     $.post('/DataModel/ShowAllData',data,function(result){
+         if(result.result.status=='200'){
+            // console.log(result.result.data)
+             myChart.setOption({
+                    legend: {
+                    orient:'vertical',
+                    left:'center',
+                    bottom:'bottom',
+                    data:result.result.data.mvilegendlist
+                    },
+                    series:[{
+                                    data:result.result.data.mvi
+                            }
+                    ]
+             });
+             myChart1.setOption({
+                    legend: {
+                    orient:'vertical',
+                    left:'center',
+                    bottom:'bottom',
+                    data: result.result.data.mgilegendlist
+                    },
+                    series:[{
+                                     data:result.result.data.mgi
+                                }
+                            ]
+                });
+             var addhtml=''
+             for(var i=0;i<result.result.data.prolist.length;i++){
+                addhtml+='<div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">'+
+                    '<div class="chart">'+
+                        '<a target="_blank" class="chart-link" onclick="clickchoose(this)"'+'>'+
+                            '<h4 class="chart-title">'+result.result.data.prolist[i]+'</h4>'+
+                            '<img class="chart-area" src="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" data-original="https://cdn.jsdelivr.net/gh/apache/incubator-echarts-website@asf-site/examples/data/thumb/line-simple.jpg?_v_=20200710_1" style="display: inline;">'+
+                        '</a>'+
+                    '</div>'+
+                '</div>'
+             }
+             $('#chart-row-line').append(addhtml);
+         }
+         if(result.result.status=='500'){
+             layer.alert("异常："+result.result.msg)
+         }
+     });
+    myChart.setOption(option, true);
+    myChart1.setOption(option1, true);
+ });
+
+function clickchoose(pro){
+    var cleantablename=getUrlParam('cleantablename');
+    var industrytable=getUrlParam('industrytable');
+    var dirpath=getUrlParam('dirpath');
+    var proname=encodeURIComponent(pro.childNodes[0].innerText);
+    var urlheader = window.location.host;
+    var detailpurl=urlheader+'/DataModel/'+'showstaticsdetail.html?proname='+proname+"&cleantablename="+cleantablename+"&industrytable="+industrytable+"&dirpath="+dirpath
+    window.open(detailpurl)
+}
+ //获取url中的参数
+function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+        var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+        if (r != null) return unescape(r[2]); return null; //返回参数值
+}
+</script>
+</html>
