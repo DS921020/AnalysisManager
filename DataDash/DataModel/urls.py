@@ -31,4 +31,5 @@ urlpatterns = [
     url(r'ShowAllData', views.ShowAllData),
     url(r'ShowDetailData', views.ShowDetailData),
     url(r'GetMenu', views.GetMenu),
+    url(r'LoginConfirm', views.LoginComfirm),
 ]

@@ -766,3 +766,22 @@ def GetMenu(request):
         print("Exception: %s" % ex)
         return JsonResponse({"result": {"status": '500', "msg": "内部异常"}})
 
+def LoginComfirm(request):
+    try:
+        ismobile=request.POST['ismobile']
+        password=request.POST['password']
+        username=request.POST['username']
+        usermobile=request.POST['usermobile']
+        if ismobile=='0':
+            userinfo=User.objects.filter(username=username,password=password,is_active=1)
+        if ismobile=='1':
+            userinfo = User.objects.filter(usermobile=usermobile, password=password,is_active=1)
+        if len(userinfo)>0:
+            json={'uersmobile':userinfo.first().usermobile,'username':userinfo.first().usermobile,'realname':userinfo.first().realname}
+            return JsonResponse({"result": {"status": '200', "data": json}})
+        return JsonResponse({"result": {"status": '501', "msg": "登陆失败，登录名或者密码不正确或不存在"}})
+    except Exception as ex:
+        print("Exception: %s" % ex)
+        return JsonResponse({"result": {"status": '500', "msg": "内部异常"}})
+
+

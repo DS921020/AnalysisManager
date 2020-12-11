@@ -8,21 +8,68 @@
     <link rel="stylesheet" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.min.css">
 </head>
 <body>
-    <div class="panel-body" style="margin-left:40%;">
-        <form class="form-horizontal" style="width: 40%;height:350px;background-color: #0f0f0f">
-            <div class="form-group" style="width: 60%;margin-left:18%;">
+   <div class="panel-body" style="margin-left:30%;margin-top: 10%">
+        <form class="form-horizontal" style="width:60%;height:300px;background-color: #eee;border-radius: 10px">
+            <div class="form-group" style="width: 80%;margin-left:30%;">
                 <div class="input-group input-group-lg" style="margin-top: 10%">
-                    <span class="input-group-addon">@</span>
-                    <input type="text" class="form-control">
+                    <input type="text" class="form-control" style="border-radius: 8px" id="username" placeholder="请输入用户名或者电话登陆">
                  </div>
             </div>
-            <div class="form-group" style="width: 60%;margin-left:18%;">
+            <div class="form-group" style="width: 40%;margin-left:30%;">
                 <div class="input-group input-group-lg" style="margin-top: 5%">
-                    <span class="input-group-addon">@</span>
-                    <input type="text" class="form-control">
+                    <input type="password" class="form-control" id="password" placeholder="请输入密码">
+                    <span class="input-group-addon glyphicon glyphicon-eye-open" style="cursor: pointer" onmousedown="showpassword()" onmouseup="hidepassword()"></span>
                 </div>
+            </div>
+            <div style="margin-left: 30%;margin-top: 5%">
+                     <button type="button" class="btn btn-primary" style="width: 100px;" onclick="loginconfirmfn()" id="loginconfirm">登陆</button>
+                     <span style="margin-left: 10%"></span>
+                     <button type="button" class="btn btn-success" style="width: 100px;" onclick="register()" id="register">注册</button>
             </div>
         </form>
     </div>
 </body>
+<script>
+    $(function(){
+        
+        
+    });
+    
+    function showpassword() {
+        passwordeye=$("#password");
+        passwordeye.prop('type','text');
+    }
+
+    function hidepassword() {
+        passwordeye=$("#password");
+        passwordeye.prop('type','password')
+    }
+    
+    function loginconfirmfn() {
+        var username=$("#username").val();
+        var usermobile='';
+        var ismobile=0;
+        var password=$("#password").val();
+        var myreg=/^[1][3,4,5,7,8][0-9]{9}$/;
+        if (myreg.test(username)) {
+                usermobile=username;
+                ismobile=1;
+        }
+        data={'username':username,'usermobile':usermobile,'password':password,'ismobile':ismobile};
+        $.post("/DataModel/LoginConfirm",data,function (result) {
+            if(result.result.status=='200'){
+
+            }
+            if(result.result.status=='500'){
+
+            }
+        });
+    }
+    
+    function register() {
+        
+    }
+    
+
+</script>
 </html>
