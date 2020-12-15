@@ -22,6 +22,7 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.hello),
+    url(r'^index.html', views.RenderIndeHtml),
     url(r'^search-form$', search.search_form),
     url(r'^search$', search.search),
     path('admin/', admin.site.urls),

@@ -10,10 +10,17 @@ $(function () {
     var menudata=[];
     var firstlevelli='';
     var NICE = $('.navbar-scroll').getNiceScroll();
-    data={'username':'啊啊','usermobile':'15888496348'};
+
+    var username=localStorage.getItem("username");
+    username=decodeURIComponent(username);
+    var realname=localStorage.getItem("realname");
+    realname=decodeURIComponent(realname)
+    var usermobile=localStorage.getItem("usermobile");
+
+    data={'username':username,'usermobile':usermobile};
     $.post('/DataModel/GetMenu',data,function (result){
         if(result.result.status=='200'){
-            welcomeusername=result.result.username+",欢迎你！";
+            welcomeusername=realname+",欢迎你！";
              $('#dropdownMenu2text')[0].innerText=welcomeusername;
             menudata=[];
             menudata=result.result.data;
@@ -326,4 +333,11 @@ function scrollTabRight() {
             }, "fast");
         }
     }
+}
+
+ //获取url中的参数
+function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+        var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+        if (r != null) return unescape(r[2]); return null; //返回参数值
 }

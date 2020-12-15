@@ -31,8 +31,7 @@
 </body>
 <script>
     $(function(){
-        
-        
+        localStorage.clear();
     });
     
     function showpassword() {
@@ -58,10 +57,17 @@
         data={'username':username,'usermobile':usermobile,'password':password,'ismobile':ismobile};
         $.post("/DataModel/LoginConfirm",data,function (result) {
             if(result.result.status=='200'){
-
+                indexurl="index.html";
+                localStorage.setItem("usermobile",result.result.data.uersmobile);
+                localStorage.setItem("username",encodeURIComponent(result.result.data.username));
+                localStorage.setItem("realname",encodeURIComponent(result.result.data.realname));
+                window.location.href= indexurl;
             }
             if(result.result.status=='500'){
-
+                layer.alert(result.result.msg)
+            }
+             if(result.result.status=='501'){
+                layer.alert(result.result.msg)
             }
         });
     }
