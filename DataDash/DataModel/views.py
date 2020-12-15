@@ -21,6 +21,7 @@ from DataModel.LoadIndustryData import LoadIndustryData
 from DataModel.LoadSingleData import LoadSingleData
 from DataModel.models import LoadDataStatus, AnalysisDataStatus, Role, Resource, User
 import django.utils.timezone as timezone
+from django_redis import get_redis_connection
 
 lock = threading.Lock()
 globalwkdir=''
@@ -28,19 +29,61 @@ globaldatadict={}
 globaltablenames=[]
 
 def QueryExportStatus(request):
-    if globaldatadict.get('cleandata') is None:
+    conn = get_redis_connection('default')
+    cleandatadict = conn.get("cleandata")
+    if cleandatadict is None or cleandatadict == '':
         return JsonResponse({"result": {"status": '200', 'data': []}})
-    chooselist = globaldatadict['cleandata']
+    chooselist = json.loads(cleandatadict)
+    conn.close()
     reschooselist = []
     for tmp in chooselist:
-         reschooselist.append(tmp)
+        reschooselist.append(tmp)
     return JsonResponse({"result": {"status": '200', 'data': reschooselist}})
+    # if globaldatadict.get('cleandata') is None:
+    #     return JsonResponse({"result": {"status": '200', 'data': []}})
+    # chooselist = globaldatadict['cleandata']
+    # reschooselist = []
+    # for tmp in chooselist:
+    #      reschooselist.append(tmp)
+    # return JsonResponse({"result": {"status": '200', 'data': reschooselist}})
 
 def CheckCleanExist(request):
     try:
         cleantablename=request.POST['cleantablename']
         existflag=False
         tablelist = ''
+        conn = get_redis_connection('default')
+        globaltablenames = json.loads(conn.get('globaltablenames'))
+        if globaltablenames is None or globaltablenames == '':
+            print("---------------query tables---------------------")
+            config = configparser.ConfigParser()
+            config.read('loadsingledataproperties.conf')
+            print(config['db']['host'])
+            print(config['db']['user'])
+            print(config['db']['database'])
+            print(config['db']['port'])
+            print(config['db']['password'])
+            host = config['db']['host']
+            user = config['db']['user']
+            password = config['db']['password']
+            database = config['db']['database']
+            port = int(config['db']['port'])
+            db = pymysql.connect(host=host, user=user,
+                                 password=password, database=database, port=port)
+            tablessql = "show tables;"
+            cursor = db.cursor()
+            cursor.execute(tablessql)
+            tableresults = cursor.fetchall()
+            i = 0
+            conn.set('globaltablenames', '')
+            conn.expire('globaltablenames', 60 * 60 * 2)
+            while i < len(tableresults):
+                globaltablenames.append(tableresults[i][0])
+                i = i + 1
+            conn.set('globaltablenames', json.dumps(globaltablenames))
+            conn.expire('globaltablenames', 60 * 60 * 2)
+        globaltablenames = json.loads(conn.get('globaltablenames'))
+        conn.close()
         for tmp in globaltablenames:
             if tmp==cleantablename:
                 existflag=True
@@ -105,35 +148,68 @@ def testupload(request):
     return JsonResponse({"result": 'ok'})
 
 def QueryByData(request):
-    type=request.POST['type']
+    type = request.POST['type']
     tablename=request.POST['tablename']
-    if globaldatadict.get(type) is None:
-       loadDataStatus = LoadDataStatus.objects.filter(type=type, status='1')
-       datadictlist = []
-       for tmp in loadDataStatus:
-           datadict = {}
-           datadict['id'] = tmp.id
-           createtime = tmp.createtime
-           datadict['createtime'] = createtime
-           filename = tmp.dirpath.split("\\")[len(tmp.dirpath.split("\\")) - 2]
-           datadict['dirpath'] = filename
-           datadictlist.append(datadict)
-       globaldatadict[type] = datadictlist
-    chooselist=globaldatadict[type]
+    conn = get_redis_connection('default')
+    globaldatadicttype = conn.get(type)
+    if globaldatadicttype is None or globaldatadicttype == '':
+        loadDataStatus = LoadDataStatus.objects.filter(type=type, status='1')
+        datadictlist = []
+        for tmp in loadDataStatus:
+            datadict = {}
+            datadict['id'] = tmp.id
+            createtime = tmp.createtime
+            # datadict['createtime'] = createtime
+            datadict['createtime'] = createtime.strftime('%Y-%m-%d %H:%M:%S')
+            filename = tmp.dirpath.split("\\")[len(tmp.dirpath.split("\\")) - 2]
+            datadict['dirpath'] = filename
+            datadictlist.append(datadict)
+        conn.set(type, json.dumps(datadictlist))
+        conn.expire('globaltablenames', 60 * 60 * 2)
+    chooselist = json.loads(conn.get(type))
+    conn.close()
     pareent=".*?"+tablename+".*?"
     regex_start = re.compile(pareent)
     reschooselist=[]
     for tmp in chooselist:
-        reschoosedict={}
+        reschoosedict = {}
         if re.match(regex_start, tmp['dirpath']) is not None:
-            reschoosedict=tmp
+            reschoosedict = tmp
             reschooselist.append(reschoosedict)
     return JsonResponse({"result": {"status": '200','data':reschooselist}})
+
+    # type=request.POST['type']
+    # tablename=request.POST['tablename']
+    # if globaldatadict.get(type) is None:
+    #    loadDataStatus = LoadDataStatus.objects.filter(type=type, status='1')
+    #    datadictlist = []
+    #    for tmp in loadDataStatus:
+    #        datadict = {}
+    #        datadict['id'] = tmp.id
+    #        createtime = tmp.createtime
+    #        datadict['createtime'] = createtime
+    #        filename = tmp.dirpath.split("\\")[len(tmp.dirpath.split("\\")) - 2]
+    #        datadict['dirpath'] = filename
+    #        datadictlist.append(datadict)
+    #    globaldatadict[type] = datadictlist
+    # chooselist=globaldatadict[type]
+    # pareent=".*?"+tablename+".*?"
+    # regex_start = re.compile(pareent)
+    # reschooselist=[]
+    # for tmp in chooselist:
+    #     reschoosedict={}
+    #     if re.match(regex_start, tmp['dirpath']) is not None:
+    #         reschoosedict=tmp
+    #         reschooselist.append(reschoosedict)
+    # return JsonResponse({"result": {"status": '200','data':reschooselist}})
 
 def QueryData(request):
     loadOgrdataDataStatus=LoadDataStatus.objects.filter(type='orgdata',status='1')
     if len(loadOgrdataDataStatus)>0:
-        globaldatadict['orgdata']=[]
+        conn = get_redis_connection('default')
+        conn.set('orgdata', '')
+        conn.expire('orgdata', 60 * 60 * 2)
+        # globaldatadict['orgdata']=[]
         loadOgrdataDataStatusjsonstr = serializers.serialize("json", loadOgrdataDataStatus)
         loadOgrdataDataStatusjson=json.loads(loadOgrdataDataStatusjsonstr)
         orgdatadictlist=[]
@@ -145,10 +221,16 @@ def QueryData(request):
             filename=tmp['fields']['dirpath'].split("\\")[len(tmp['fields']['dirpath'].split("\\"))-2]
             orgdatadict['dirpath'] = filename
             orgdatadictlist.append(orgdatadict)
-        globaldatadict['orgdata']=orgdatadictlist
+        conn.set('orgdata', json.dumps(orgdatadictlist))
+        conn.expire('orgdata', 60 * 60 * 2)
+        conn.close()
+        # globaldatadict['orgdata']=orgdatadictlist
     loadIndustryDataStatus = LoadDataStatus.objects.filter(type='industry', status='0')
     if len(loadIndustryDataStatus)>0:
-        globaldatadict['industry'] = []
+        conn = get_redis_connection('default')
+        conn.set('industry', '')
+        conn.expire('industry', 60 * 60 * 2)
+        #globaldatadict['industry'] = []
         loadIndustryDataStatusjsonstr = serializers.serialize("json", loadIndustryDataStatus)
         loadIndustryDataStatusjson = json.loads(loadIndustryDataStatusjsonstr)
         industrydatadictlist = []
@@ -159,10 +241,16 @@ def QueryData(request):
             filename = tmp1['fields']['dirpath'].split("\\")[len(tmp1['fields']['dirpath'].split("\\")) - 2]
             industrydatadict['dirpath'] = filename
             industrydatadictlist.append(industrydatadict)
-        globaldatadict['industry'] = industrydatadictlist
+        conn.set('industry', json.dumps(industrydatadictlist))
+        conn.expire('industry', 60 * 60 * 2)
+        conn.close()
+        #globaldatadict['industry'] = industrydatadictlist
     loadCleanDataStatus = LoadDataStatus.objects.filter(type='cleandata', status='0')
     if len(loadCleanDataStatus)>0:
-        globaldatadict['cleandata'] = []
+        conn = get_redis_connection('default')
+        conn.set('cleandata', '')
+        conn.expire('cleandata', 60 * 60 * 2)
+        #globaldatadict['cleandata'] = []
         loadCleanDataStatusjsonstr = serializers.serialize("json", loadCleanDataStatus)
         loadCleanDataStatusjson = json.loads(loadCleanDataStatusjsonstr)
         cleandatadictlist = []
@@ -172,7 +260,9 @@ def QueryData(request):
             cleandatadict['createtime'] = tmp1["fields"]['createtime']
             cleandatadict['dirpath'] = filename
             cleandatadictlist.append(cleandatadict)
-        globaldatadict['cleandata'] = cleandatadictlist
+        conn.set('cleandata', json.dumps(cleandatadictlist), 60)
+        conn.close()
+        #globaldatadict['cleandata'] = cleandatadictlist
     print("---------------query tables---------------------")
     config = configparser.ConfigParser()
     config.read('loadsingledataproperties.conf')
@@ -193,9 +283,15 @@ def QueryData(request):
     cursor.execute(tablessql)
     tableresults = cursor.fetchall()
     i=0
+    conn = get_redis_connection('default')
+    conn.set('globaltablenames', '')
+    conn.expire('globaltablenames', 60 * 60 * 2)
     while i<len(tableresults):
         globaltablenames.append(tableresults[i][0])
         i=i+1
+    conn.set('globaltablenames', json.dumps(globaltablenames))
+    conn.expire('globaltablenames', 60 * 60 * 2)
+    conn.close()
     return JsonResponse({"result": {"status": '200'}})
 
 def renderQueryAnalysisStatusHtml(request):
@@ -232,6 +328,13 @@ def QueryBaseDataDir(request):
     currentdir = os.getcwd()
     basedata = config['loaddatadir']['datadir']
     querycurrentbasedir = currentdir + "\\" + basedata + "\\"
+
+    lock.acquire()
+    if not os.path.exists(querycurrentbasedir):
+        os.makedirs(querycurrentbasedir)
+        print("------------目录创建成功！")
+    lock.release()
+
     try:
         for root, dirs, files in os.walk(querycurrentbasedir):
             print(root)  # 当前目录路径
