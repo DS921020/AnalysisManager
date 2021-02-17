@@ -9,12 +9,13 @@ from dbutils.pooled_db import PooledDB
 import django.utils.timezone as timezone
 import time
 import xlrd
-
+import logging
 
 import threading
 
 from DataModel.models import LoadDataStatus
 
+logger = logging.getLogger(__name__)
 threadnum = 0
 Lock = threading.Lock()
 
@@ -36,6 +37,13 @@ class LoadSingleData:
     def __init__(self,currentbasedir,tablename,primaryid):
         config = configparser.ConfigParser()
         config.read('loadsingledataproperties.conf')
+        logger.info("......loadsingledataproperties...........")
+        logger.info(config['db']['host'])
+        logger.info(config['db']['user'])
+        logger.info(config['db']['database'])
+        logger.info(config['db']['port'])
+        logger.info(config['db']['password'])
+
         print(config['db']['host'])
         print(config['db']['user'])
         print(config['db']['database'])
@@ -66,6 +74,7 @@ class LoadSingleData:
         self.expoertExcel2Db()
 
     def createTable(self):
+        logger.info("-------------------------createorgtable ")
         print("-------------------------createorgtable ")
         try:
             db=self.pool.connection()
@@ -234,6 +243,7 @@ class LoadSingleData:
                 filternum=filternum+1
                 continue
             resultvalues.append(tuple(result))
+        logger.info("filter num-------------: " + str(filternum))
         print("filter num-------------: ",filternum)
         return resultvalues
 
@@ -242,10 +252,16 @@ class LoadSingleData:
         cursor = db.cursor()
         selectsql = "show columns from " + self.loadtablename + ";"
         colnum = cursor.execute(selectsql)
+        logger.info("----------------------------------------excelpath" + excelpath)
+        logger.info("----------------------------------------self.loadtablename" + self.loadtablename)
+        logger.info("----------------------------------------self.loadlimit" + str(self.loadlimit))
+        logger.info("----------------------------------------filenum " + str(filenum))
+
         print("----------------------------------------excelpath", excelpath)
         print("----------------------------------------self.loadtablename", self.loadtablename)
         print("----------------------------------------self.loadlimit", self.loadlimit)
         print("----------------------------------------filenum ", filenum)
+
         resultvalues = self.exportexcel(colnum, excelpath)
         insertsql = "insert into " + self.loadtablename + " values( "
         strsize = len(resultvalues[0])
@@ -255,9 +271,14 @@ class LoadSingleData:
             strcount += 1
         insertsql = insertsql[0:len(insertsql) - 1]
         insertsql = insertsql + ")"
+        logger.info("----------sql:" + insertsql)
         print("----------sql:", insertsql)
         size = len(resultvalues)
         count = int(size / self.loadlimit) + 1
+        logger.info("----------szie: " + str(size))
+        logger.info("------------self.loadlimit: " + str(self.loadlimit))
+        logger.info("----------count: " + str(count))
+
         print("----------szie: ",size)
         print("------------self.loadlimit: ",self.loadlimit)
         print("----------count: ", count)
@@ -267,21 +288,34 @@ class LoadSingleData:
                 insertdata = resultvalues[i * self.loadlimit:(i + 1) * self.loadlimit]
                 cursor.executemany(insertsql, insertdata)
                 db.commit()
+                logger.info("------------------insert-----------------------:  " + str(i))
                 print("------------------insert-----------------------:  ", i)
                 i += 1
         except:
             db.rollback()
         cursor.close()
+        logger.info("#####################insert end####################")
         print("#####################insert end####################")
         global threadnum
+        logger.info("threadnum--------------------------: " + str(threadnum))
+        logger.info("filenum--------------------------: " + str(filenum))
         print("threadnum--------------------------: ",threadnum)
         print("filenum--------------------------: ", filenum)
         Lock.acquire()
         threadnum=threadnum+1
+        logger.info(".................................after.......................")
+        logger.info("threadnum--------------------------: " + str(threadnum))
+        logger.info("filenum--------------------------: " + str(filenum))
         print(".................................after.......................")
         print("threadnum--------------------------: ", threadnum)
         print("filenum--------------------------: ", filenum)
         if threadnum>=filenum:
+            logger.info(threadnum)
+            logger.info("***********************real insert end***************************")
+            logger.info("final threadnum--------------------------: " + str(threadnum))
+            logger.info("final filenum--------------------------: " + str(filenum))
+            logger.info("update............................ " + str(self.primaryid))
+
             print(threadnum)
             print("***********************real insert end***************************")
             print("final threadnum--------------------------: ", threadnum)
@@ -294,6 +328,7 @@ class LoadSingleData:
         return
 
     def data_handler(self,excelpath,filenum):
+        logger.info("----------------------insert file: " + excelpath)
         print("----------------------insert file: ", excelpath)
         # #录入数据
         # limit=10000
@@ -323,17 +358,20 @@ class LoadSingleData:
             t.start()
         for t in thread_list:
             t.join()
+        logger.info("数据插入完成.==>> 耗时:{}'s:" + str(format(round(time.time() - st, 3))))
         print("数据插入完成.==>> 耗时:{}'s".format(round(time.time() - st, 3)))
 
     def expoertExcel2Db(self):
+        logger.info("---------expoertExcel2Db-------------------")
         self.filelists=[]
         for root, dirs, files in os.walk(self.currentbasedir):
             print(root)  # 当前目录路径
             print(dirs)  # 当前路径下所有子目录
             print(files)  # 当前路径下所有非目录      子文件
         for file in files:
-            excelpath = self.currentbasedir + file
+            excelpath = os.path.join(self.currentbasedir, file)
             docname = self.get_file_name(excelpath)
+            logger.info("------------------------------------docname：" + docname)
             print("------------------------------------docname：", docname)
             self.filelists.append(excelpath)
         threadnum=0

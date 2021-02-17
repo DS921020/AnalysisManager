@@ -11,7 +11,9 @@ from dbutils.pooled_db import PooledDB
 import time
 
 from DataModel.models import LoadDataStatus
+import logging
 
+logger = logging.getLogger(__name__)
 loadalldatathreadnum=0
 Lock = threading.Lock()
 
@@ -65,6 +67,7 @@ class LoadAllData:
         cur.close()
 
     def data_handler(self,start,limitarraylen):
+        logger.info("data_handler start....................")
         sqlthreetablequery = """select 
         										   o.prodate 			,
         										   o.proarea 			,
@@ -270,6 +273,8 @@ class LoadAllData:
                                         ORDER BY
                                                 o.compamyid
                                         limit """ + str(start) + "," + str(self.limit) + ";"
+        logger.info("start=-------" + str(start))
+        logger.info("limit=-------" + str(self.limit))
         print("start=-------", start)
         print("limit=-------", self.limit)
         db = self.pool.connection()
@@ -279,6 +284,7 @@ class LoadAllData:
         tmpcount = 0
         finalresultlist = []
         for tmp in datasresultlist:
+            logger.info("----------------------------" + str(tmpcount))
             print("----------------------------", tmpcount)
             print(tmp)
             atomsubindustry = self.queryatomsub(db,tmp[3])
@@ -311,18 +317,29 @@ class LoadAllData:
             tmpcount += 1
             finalresultlist.append(finalresult)
         if len(finalresultlist) > 0:
+            logger.info("finalresultlist---------------------------------")
             print("finalresultlist---------------------------------", finalresultlist)
             self.insertcleantabledatas(db, finalresultlist)
         print("#####################insert end####################")
+        logger.info("#####################insert end####################")
         global loadalldatathreadnum
+        logger.info("loadalldatathreadnum--------------------------: " + str(loadalldatathreadnum))
+        logger.info("limitarraylen--------------------------: " + str(limitarraylen))
         print("loadalldatathreadnum--------------------------: ", loadalldatathreadnum)
         print("limitarraylen--------------------------: ", limitarraylen)
         Lock.acquire()
         loadalldatathreadnum = loadalldatathreadnum + 1
+        logger.info(".................................after.......................")
+        logger.info("loadalldatathreadnum--------------------------: " + str(loadalldatathreadnum))
+        logger.info("limitarraylen--------------------------: " + str(limitarraylen))
         print(".................................after.......................")
         print("loadalldatathreadnum--------------------------: ", loadalldatathreadnum)
         print("limitarraylen--------------------------: ", limitarraylen)
         if loadalldatathreadnum >= limitarraylen:
+            logger.info(loadalldatathreadnum)
+            logger.info("***********************real insert end***************************")
+            logger.info("final threadnum--------------------------: " + str(loadalldatathreadnum))
+            logger.info("final filenum--------------------------: " + str(limitarraylen))
             print(loadalldatathreadnum)
             print("***********************real insert end***************************")
             print("final threadnum--------------------------: ", loadalldatathreadnum)
@@ -443,6 +460,12 @@ class LoadAllData:
         print(config['db']['database'])
         print(config['db']['port'])
         print(config['db']['password'])
+        logger.info(config['db']['host'])
+        logger.info(config['db']['user'])
+        logger.info(config['db']['database'])
+        logger.info(config['db']['port'])
+        logger.info(config['db']['password'])
+
         self.host = config['db']['host']
         self.user = config['db']['user']
         self.password = config['db']['password']
@@ -468,6 +491,7 @@ class LoadAllData:
         self.queryortable1=queryortable1
         self.atomtablename=atomtablename
 
+        logger.info("----------------------createcleantable--------------------------")
         self.createcleantable(cleantablename)
 
         ortablenum = self.queryortablenum()
@@ -475,8 +499,10 @@ class LoadAllData:
         limitarray = []
         firstgap = 0
         limitarray.append(firstgap)
+        logger.info("----------------------limitarray loop--------------------------:" + str(len(limitarray)))
         while firstgap < ortablenum[0]:
             firstgap = firstgap + int(self.limit)
             limitarray.append(firstgap)
+        logger.info("-------limitarray len---------:" + str(len(limitarray)))
         print("-------limitarray len---------:",len(limitarray))
         self.task(limitarray,len(limitarray))

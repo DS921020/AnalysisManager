@@ -22,7 +22,9 @@ from DataModel.LoadSingleData import LoadSingleData
 from DataModel.models import LoadDataStatus, AnalysisDataStatus, Role, Resource, User
 import django.utils.timezone as timezone
 from django_redis import get_redis_connection
+import logging
 
+logger = logging.getLogger(__name__)
 lock = threading.Lock()
 globalwkdir=''
 globaldatadict={}
@@ -102,6 +104,12 @@ def ExportData2Tables(requset):
     industrytablename=requset.POST['industrytable']
     cleantable=requset.POST['cleantable']
     tabletype='cleandata'
+    logger.info("datatablename1-------------" + datatablename1)
+    logger.info("datatablename2-------------" + datatablename2)
+    logger.info("datatablename3-------------" + datatablename3)
+    logger.info("industrytablename-------------" + industrytablename)
+    logger.info("cleantable-------------" + cleantable)
+
     try:
         loadDataStatuslist = LoadDataStatus.objects.filter(status='0', type=tabletype)
         if len(loadDataStatuslist) > 0:
@@ -115,6 +123,8 @@ def ExportData2Tables(requset):
         return JsonResponse({"result": {"status": '200'}})
     except Exception as ex:
         print("Exception: %s" % ex)
+        logger.info("Exception.......")
+        logger.info(ex)
         if loaddatastatus is not None and loaddatastatus.id is not None:
             LoadDataStatus.objects.filter(id=loaddatastatus.id).update(status='1',exceptionmsgs=ex,updatetime=timezone.now())
         return JsonResponse({"result": {"status": '500', "msg": "内部异常"}})
@@ -127,20 +137,26 @@ def loginout(request):
     return render(request,"login.html")
 
 def testupload(request):
-    print("--------------------------")
+    logger.info("--------------uploadfiles--------------------")
     foldername=request.POST.get('foldername')
     file=request.FILES.get('file')
+    logger.info("--------------foldername--------------------:" + foldername)
+    logger.info("--------------file--------------------:" + file.name)
     config = configparser.ConfigParser()
     config.read('loadsingledataproperties.conf')
     currentdir = os.getcwd()
     basedata = config['loaddatadir']['datadir']
-    currentbasedir = currentdir + "\\" + basedata + "\\" + foldername + "\\"
+    # currentbasedir = currentdir + "\\" + basedata + "\\" + foldername + "\\"
+    currentbasedir = os.path.join(currentdir, basedata, foldername)
+    logger.info("--------------currentbasedir--------------------:" + currentbasedir)
     lock.acquire()
     if not os.path.exists(currentbasedir):
         os.makedirs(currentbasedir)
-        print("------------目录创建成功！")
-    currentfile=currentbasedir+file.name
+        logger.info("------------目录创建成功！")
+    # currentfile=currentbasedir+file.name
+    currentfile = os.path.join(currentbasedir, file.name)
     lock.release()
+    logger.info("--------------currentfile--------------------:" + currentfile)
     f = open(currentfile,'wb+')
     for chunk in file.chunks():
         f.write(chunk)
@@ -161,7 +177,8 @@ def QueryByData(request):
             createtime = tmp.createtime
             # datadict['createtime'] = createtime
             datadict['createtime'] = createtime.strftime('%Y-%m-%d %H:%M:%S')
-            filename = tmp.dirpath.split("\\")[len(tmp.dirpath.split("\\")) - 2]
+            # filename = tmp.dirpath.split("\\")[len(tmp.dirpath.split("\\")) - 2]
+            filename = os.path.basename(tmp.dirpath)
             datadict['dirpath'] = filename
             datadictlist.append(datadict)
         conn.set(type, json.dumps(datadictlist))
@@ -218,7 +235,8 @@ def QueryData(request):
             orgdatadict['id']=tmp['pk']
             orcreatetime= tmp["fields"]['createtime']
             orgdatadict['createtime']=orcreatetime
-            filename=tmp['fields']['dirpath'].split("\\")[len(tmp['fields']['dirpath'].split("\\"))-2]
+            # filename=tmp['fields']['dirpath'].split("\\")[len(tmp['fields']['dirpath'].split("\\"))-2]
+            filename = os.path.basename(tmp['fields']['dirpath'])
             orgdatadict['dirpath'] = filename
             orgdatadictlist.append(orgdatadict)
         conn.set('orgdata', json.dumps(orgdatadictlist))
@@ -238,7 +256,8 @@ def QueryData(request):
             industrydatadict = {}
             industrydatadict['id'] = tmp1['pk']
             industrydatadict['createtime'] = tmp1["fields"]['createtime']
-            filename = tmp1['fields']['dirpath'].split("\\")[len(tmp1['fields']['dirpath'].split("\\")) - 2]
+            # filename = tmp1['fields']['dirpath'].split("\\")[len(tmp1['fields']['dirpath'].split("\\")) - 2]
+            filename = os.path.basename(tmp1['fields']['dirpath'])
             industrydatadict['dirpath'] = filename
             industrydatadictlist.append(industrydatadict)
         conn.set('industry', json.dumps(industrydatadictlist))
@@ -258,12 +277,13 @@ def QueryData(request):
             cleandatadict = {}
             cleandatadict['id'] = tmp1['pk']
             cleandatadict['createtime'] = tmp1["fields"]['createtime']
-            cleandatadict['dirpath'] = filename
+            cleandatadict['dirpath'] = tmp1["fields"]['dirpath']
             cleandatadictlist.append(cleandatadict)
         conn.set('cleandata', json.dumps(cleandatadictlist), 60)
         conn.close()
         #globaldatadict['cleandata'] = cleandatadictlist
     print("---------------query tables---------------------")
+    logger.info("---------------query tables---------------------")
     config = configparser.ConfigParser()
     config.read('loadsingledataproperties.conf')
     print(config['db']['host'])
@@ -322,17 +342,23 @@ def renderinsureanalysislayhtml(request):
     return render(request, 'insureanalysislay.html')
 
 def QueryBaseDataDir(request):
+    logger.info("----------------check dir----------------")
     foldername = request.POST.get('foldername')
     config = configparser.ConfigParser()
     config.read('loadsingledataproperties.conf')
     currentdir = os.getcwd()
     basedata = config['loaddatadir']['datadir']
-    querycurrentbasedir = currentdir + "\\" + basedata + "\\"
+    logger.info("-----currentdir:" + currentdir)
+    logger.info("-----basedata:" + basedata)
+    # querycurrentbasedir = currentdir + "\\" + basedata + "\\"
+    querycurrentbasedir = os.path.join(currentdir, basedata)
+    logger.info("-----querycurrentbasedir:" + querycurrentbasedir)
 
     lock.acquire()
     if not os.path.exists(querycurrentbasedir):
         os.makedirs(querycurrentbasedir)
-        print("------------目录创建成功！")
+        logger.info("------------QueryBaseDataDir 目录创建成功！")
+        print("------------QueryBaseDataDir 目录创建成功！")
     lock.release()
 
     try:
@@ -340,28 +366,53 @@ def QueryBaseDataDir(request):
             print(root)  # 当前目录路径
             print(dirs)  # 当前路径下所有子目录
             print(files)  # 当前路径下所有非目录      子文件
+            logger.info(root)
+            logger.info(dirs)
+            logger.info(files)
             break
         for dir in dirs:
             print("------------------------------------", dir)
+            logger.info("------------------------------------" + dir)
             if dir == foldername:
                 return JsonResponse({"result": {"status": '202', "data": dirs}})
         return JsonResponse({"result": {"status": '200'}})
     except Exception as ex:
         print("Exception: %s" % ex)
+        logger.info("Exception:")
+        logger.info(ex)
         return JsonResponse({"result": {"status": '500', "msg": "内部异常"}})
 
 def QueryBaseDataStatus(request):
-    type=request.POST.get('type')
+    type = 'industry'
+    type1 = 'orgdata'
     try:
         loadDataStatuslist = LoadDataStatus.objects.filter(status='0',type=type)
         if len(loadDataStatuslist)>0:
             loadDataStatuslistres = serializers.serialize("json", loadDataStatuslist)
             return JsonResponse({"result": {"status": '201',"data":loadDataStatuslistres}})
+
+        loadDataStatuslist1 = LoadDataStatus.objects.filter(status='0', type=type1)
+        if len(loadDataStatuslist1) > 0:
+            loadDataStatuslistres1 = serializers.serialize("json", loadDataStatuslist1)
+            return JsonResponse({"result": {"status": '201', "data": loadDataStatuslistres1}})
+
         else:
             return JsonResponse({"result": {"status": '200'}})
     except Exception as ex:
         print("Exception: %s "%ex)
         return JsonResponse({"result": {"status": '500',"msg":"内部异常"}})
+
+    # type=request.POST.get('type')
+    # try:
+    #     loadDataStatuslist = LoadDataStatus.objects.filter(status='0',type=type)
+    #     if len(loadDataStatuslist)>0:
+    #         loadDataStatuslistres = serializers.serialize("json", loadDataStatuslist)
+    #         return JsonResponse({"result": {"status": '201',"data":loadDataStatuslistres}})
+    #     else:
+    #         return JsonResponse({"result": {"status": '200'}})
+    # except Exception as ex:
+    #     print("Exception: %s "%ex)
+    #     return JsonResponse({"result": {"status": '500',"msg":"内部异常"}})
 
 def EditStatus(request):
     try:
@@ -516,8 +567,9 @@ def QueryStatusPage(request):
     createtime = request.GET.get('createtime')
     updatetime = request.GET.get('updatetime')
     queryparam={}
-    if dirpath is not None and len(dirpath.strip())!=0:
-        queryparam['dirpath'] = currentdir + "\\" +   basedata + "\\" + dirpath + "\\"
+    if dirpath is not None and len(dirpath.strip())!= 0:
+        # queryparam['dirpath'] = currentdir + "\\" +   basedata + "\\" + dirpath + "\\"
+        queryparam['dirpath'] = os.path.join(currentdir, basedata, dirpath)
     if type is not None and len(type.strip())!=0:
         queryparam['type'] = type
     if status is not None and len(status.strip())!=0:
@@ -553,10 +605,11 @@ def QueryStatusPage(request):
             #              'createtime': tmp.createtime,
             #              'updatetime': tmp.updatetime,
             #              'dirpath': tmp.dirpath})
+            filename = os.path.basename(tmp.dirpath)
             rows.append({'id': tmp.id, 'type': tmp.type, 'status': tmp.status,
                          'createtime': tmp.createtime.strftime('%Y-%m-%d %H:%M:%S'),
                          'updatetime': tmp.updatetime.strftime('%Y-%m-%d %H:%M:%S'),
-                         'dirpath': tmp.dirpath})
+                         'dirpath': filename})
             print(tmp)
         # data = serializers.serialize("json", loadDataStatus.object_list)
         # jsonarray=json.loads(data)
@@ -572,16 +625,23 @@ def QueryStatusPage(request):
 
 
 def CreateTableAndInsertIndustry(request):
-    print("------------------------------industrydata--------------------------")
-    print(request)
+    logger.info("------------------------------CreateTableAndInsertIndustry industrydata--------------------------")
+    # print("------------------------------industrydata--------------------------")
+    # print(request)
     foldername = request.POST.get('foldername')
     tablename = request.POST.get('tablename')
     tabletype = request.POST.get('tabletype')
     filename = request.POST.get('filename')
+    logger.info("------CreateTableAndInsertIndustry industrydata-------foldername:" + foldername)
+    logger.info("------CreateTableAndInsertIndustry industrydata-------tablename:" + tablename)
+    logger.info("------CreateTableAndInsertIndustry industrydata-------tabletype:" + tabletype)
+    logger.info("------CreateTableAndInsertIndustry industrydata-------filename:" + filename)
     config = configparser.ConfigParser()
     config.read('loadsingledataproperties.conf')
     currentdir = os.getcwd()
+    logger.info("------CreateTableAndInsertIndustry industrydata-------currentdir:" + currentdir)
     basedata = config['loaddatadir']['datadir']
+    logger.info("------CreateTableAndInsertIndustry industrydata-------basedata:" + basedata)
     loaddatastatus = None
     try:
         # status:0--进行中 1--完成 2--删除
@@ -589,21 +649,27 @@ def CreateTableAndInsertIndustry(request):
         if len(loadDataStatuslist) > 0:
             loadDataStatuslistres = serializers.serialize("json", loadDataStatuslist)
             return JsonResponse({"result": {"status": '201', "data": loadDataStatuslistres}})
-        currentbasedir = currentdir + "\\" + basedata + "\\" + foldername + "\\"
+        # currentbasedir = currentdir + "\\" + basedata + "\\" + foldername + "\\"
+        currentbasedir = os.path.join(currentdir, basedata, foldername)
+        logger.info("------CreateTableAndInsertIndustry industrydata-------currentbasedir:" + currentbasedir)
         loaddatastatus = LoadDataStatus(type=tabletype, dirpath=currentbasedir, status='0')
         loaddatastatus.save()
-        print("loaddatastatus save--------------------------")
+        # print("loaddatastatus save--------------------------")
+        logger.info("------CreateTableAndInsertIndustry industrydata-------loaddatastatus save..............")
         LoadIndustryData(currentbasedir, tablename, filename)
         LoadDataStatus.objects.filter(id=loaddatastatus.id).update(status='1', updatetime=timezone.now())
         return JsonResponse({"result": {"status": '200'}})
     except Exception as ex:
         print("Exception: %s" % ex)
+        logger.info("Exception:...............")
+        logger.info(str(ex))
         if loaddatastatus is not None and loaddatastatus.id is not None:
             LoadDataStatus.objects.filter(id=loaddatastatus.id).update(status='1', exceptionmsgs=ex,
                                                                        updatetime=timezone.now())
         return JsonResponse({"result": {"status": '500', "msg": "内部异常"}})
 
 def CreateTableAndInsertBaseData(request):
+    logger.info("------------------------------basedata--------------------------")
     print("------------------------------basedata--------------------------")
     print(request)
     foldername = request.POST.get('foldername')
@@ -633,10 +699,12 @@ def CreateTableAndInsertBaseData(request):
         if len(loadDataStatuslist)>0:
             loadDataStatuslistres = serializers.serialize("json", loadDataStatuslist)
             return JsonResponse({"result": {"status": '201', "data": loadDataStatuslistres}})
-        currentbasedir = currentdir + "\\" + basedata + "\\" + foldername + "\\"
+        # currentbasedir = currentdir + "\\" + basedata + "\\" + foldername + "\\"
+        currentbasedir = os.path.join(currentdir, basedata, foldername)
         loaddatastatus=LoadDataStatus(type=tabletype,dirpath=currentbasedir,status='0')
         loaddatastatus.save()
-        LoadSingleData(currentbasedir,tablename,loaddatastatus.id)
+        LoadSingleData(currentbasedir, tablename, loaddatastatus.id)
+        logger.info("-------end----------")
         print("-------end----------")
         # if tabletype=='industry':
         #     #status:0--进行中 1--完成 2--删除
@@ -653,7 +721,9 @@ def CreateTableAndInsertBaseData(request):
         return JsonResponse({"result": {"status":'200'}})
     except Exception as ex:
         print("Exception: %s" % ex)
-        if loaddatastatus is not None and loaddatastatus.id is not None:
+        logger.info("Exception:............")
+        logger.info(ex)
+        if loaddatastatus is not None and loaddatastatus.id is not Nfone:
             LoadDataStatus.objects.filter(id=loaddatastatus.id).update(status='1',exceptionmsgs=ex,updatetime=timezone.now())
         return JsonResponse({"result": {"status": '500', "msg": "内部异常"}})
 

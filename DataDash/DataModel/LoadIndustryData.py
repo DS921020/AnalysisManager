@@ -5,7 +5,9 @@ import os
 import pymysql
 import xlrd
 import re
+import logging
 
+logger = logging.getLogger(__name__)
 class LoadIndustryData:
     host=''
     user=''
@@ -19,12 +21,16 @@ class LoadIndustryData:
     loadlimit=''
     insertlimit=''
 
-    def exportexcel(self,filepath,resultvalues):
+    def exportexcel(self, filepath, resultvalues, tablename):
         file = xlrd.open_workbook(filepath) #打开Excel文件
         print(file.sheet_names())
+        # logger.info("file.sheet_names:"+file.sheet_names)
         sheet=file.sheet_by_index(0)
+        posi = 0
+        tmpresult = []
         for i in range(1,sheet.nrows):
-            print("i---------:",i)
+            # print("i---------:",i)
+            logger.info("i---------------:" + str(i))
             replace = ['--', None]
             result=[]
             j = 0
@@ -36,10 +42,64 @@ class LoadIndustryData:
                         cellvalue=None
                     result.append(cellvalue)
                     j+=1
-            resultvalues.append(tuple(result))
+            tmpresult.append(tuple(result))
+            posi = posi + 1
+            if posi >= self.limit:
+                logger.info("#########################push###################")
+                logger.info("------i:" + str(i))
+                self.db.ping(reconnect=True)
+                cursor = self.db.cursor()
+                try:
+                    strsize = len(tmpresult[0])
+                    logger.info("###############strsize###########:" + str(strsize))
+                    strcount = 0
+                    sql = ""
+                    sql = "insert into " + tablename + "  values("
+                    for strcount in range(strcount, strsize):
+                        sql += "%s" + ","
+                        strcount += 1
+                    sql = sql[0:len(sql) - 1]
+                    sql = sql + ")"
+                    logger.info("----------sql:" + sql)
+                    cursor.executemany(sql, tmpresult)
+                    self.db.commit()
+                except Exception as ex:
+                    logger.info("eeeeeeeeee-----------------------------")
+                    logger.info(ex)
+                    self.db.rollback()
+                cursor.close()
+                self.db.close()
+                tmpresult = []
+                posi = 0
+        if len(tmpresult) > 0:
+            logger.info("#########################last push###################")
+            self.db.ping(reconnect=True)
+            cursor = self.db.cursor()
+            try:
+                strsize = len(tmpresult[0])
+                logger.info("###############strsize###########:" + str(strsize))
+                strcount = 0
+                sql = ""
+                sql = "insert into " + tablename + "  values("
+                for strcount in range(strcount, strsize):
+                    sql += "%s" + ","
+                    strcount += 1
+                sql = sql[0:len(sql) - 1]
+                sql = sql + ")"
+                logger.info("----------sql:" + sql)
+                cursor.executemany(sql, tmpresult)
+                self.db.commit()
+            except Exception as ex:
+                logger.info("eeeeeeeeee-----------------------------")
+                logger.info(ex)
+                self.db.rollback()
+            cursor.close()
+            self.db.close()
+
 
     def createcleantable(self,cleantablename):
         try:
+            self.db.ping(reconnect=True)
             cur = self.db.cursor()
             droptablesql = "drop table if exists " + cleantablename + ";"
             cur.execute(droptablesql)
@@ -165,31 +225,50 @@ class LoadIndustryData:
             self.db.rollback()
         cur.close()
 
-    def insertdata(self,datas, sql, limit):
-        cursor = self.db.cursor()
-        strsize = len(datas[0])
-        strcount = 0
-        for strcount in range(strcount, strsize):
-            sql += "%s" + ","
-            strcount += 1
-        sql = sql[0:len(sql) - 1]
-        sql = sql + ")"
-        print("----------sql:", sql)
-        size = len(datas)
-        count = int(size / limit) + 1
-        print("----------count:", count)
-        i = 0
-        try:
-            while i < count:
-                insertdata = datas[i * limit:(i + 1) * limit]
-                cursor.executemany(sql, insertdata)
-                self.db.commit()
-                print("------------------insert-----------------------:\n", i)
-                i += 1
-        except:
-            self.db.rollback()
-        cursor.close()
-        self.db.close()
+    # def insertdata(self,datas, sql, limit):
+    #     self.db.ping(reconnect=True)
+    #     cursor = self.db.cursor()
+    #     strsize = len(datas[0][0])
+    #     logger.info("###############strsize###########:"+str(strsize))
+    #     strcount = 0
+    #     for strcount in range(strcount, strsize):
+    #         sql += "%s" + ","
+    #         strcount += 1
+    #     sql = sql[0:len(sql) - 1]
+    #     sql = sql + ")"
+    #     logger.info("----------sql:"+sql)
+    #     size=len(datas)
+    #     logger.info("--------------size:"+str(size))
+    #     i=0
+    #     try:
+    #         while i<size:
+    #             insertdata = datas[i]
+    #             cursor.executemany(sql, insertdata)
+    #             self.db.commit()
+    #             logger.info("------------------insert-----------------------:" + str(i))
+    #             i=i+1
+    #     except:
+    #         self.db.rollback()
+    #     cursor.close()
+    #     self.db.close()
+
+    # size = len(datas)
+    # count = int(size / limit) + 1
+    # logger.info("----------count:"+str(count))
+    # print("----------count:", count)
+    # i = 0
+    # try:
+    #     while i < count:
+    #         insertdata = datas[i * limit:(i + 1) * limit]
+    #         cursor.executemany(sql, insertdata)
+    #         self.db.commit()
+    #         logger.info("------------------insert-----------------------:\n"+str(i))
+    #         print("------------------insert-----------------------:\n", i)
+    #         i += 1
+    # except:
+    #     self.db.rollback()
+    # cursor.close()
+    # self.db.close()
 
     def __init__(self,currentbasedir,tablename,filename):
         currentdir = os.getcwd()
@@ -213,14 +292,34 @@ class LoadIndustryData:
         self.databasedir = config['data']['dirnamne']
         self.filename = filename
 
-        currentbasedir = currentbasedir + filename
-        resultvalues = []
-        print("==============read excel================")
-        self.exportexcel(currentbasedir, resultvalues)
-        print("----------------resultvalues", resultvalues)
-        sql = "insert into " + tablename + "  values("
-        # sql = "insert into product_info values("
-        self.createcleantable(tablename)
-        self.insertdata(resultvalues, sql, self.limit)
-        
+        try:
+            # currentbasedir = currentbasedir + filename
+            currentbasedir = os.path.join(currentbasedir, filename)
+            logger.info("createcleantable---------------------------")
+            self.createcleantable(tablename)
+            resultvalues = []
+            print("==============read excel================")
+            logger.info("==============read excel================")
 
+            self.exportexcel(currentbasedir, resultvalues, self.tablename)
+            # print("----------------resultvalues", resultvalues)
+            logger.info("==============end================&&&&&&&&&&&&")
+
+            # #currentbasedir = currentbasedir + filename
+            # currentbasedir=os.path.join(currentbasedir,filename)
+            # resultvalues = []
+            # print("==============read excel================")
+            # logger.info("==============read excel================")
+            # self.exportexcel(currentbasedir, resultvalues)
+            # # print("----------------resultvalues", resultvalues)
+            # logger.info("==============resultvalues================"+str(len(resultvalues)))
+            # sql = "insert into " + tablename + "  values("
+            # # sql = "insert into product_info values("
+            # logger.info("createcleantable---------------------------")
+            # self.createcleantable(tablename)
+            # logger.info("insert---------------------------")
+            # self.insertdata(resultvalues, sql, self.limit)
+        except Exception as ex:
+            print("Exception: %s" % ex)
+            logger.info("Exception:............")
+            logger.info(ex)
